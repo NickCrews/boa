@@ -2,7 +2,6 @@ from __future__ import division
 import sys
 import glob
 import serial
-import select
 import multiprocessing
 import time
 import numpy.random as rand

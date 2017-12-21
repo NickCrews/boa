@@ -4,6 +4,14 @@ For my senior project for the physics department, I designed and made from scrat
 
 This repository includes the code to run the Arduino, as well as a python program to view, analyze, save, and load data from the sensor, as well as calibrate the sensor.
 
+# Requirements
+- python 2 or 3 (use 2 if you want to use bluetooth)
+- numpy
+- pyQT
+- pyqtgraph (extension of pyqt used for the plots)\
+- bluetooth (if you want it, otherwise can do USB)
+
+
 # Use
 python loadcellcontrol.py
 OR
