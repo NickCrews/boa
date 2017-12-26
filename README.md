@@ -25,7 +25,7 @@ Try loading up finalCalibration.csv from the Calibrations menu and then one of t
 - calibrations/ contains .csv files of saved calibrations. Entries are pairs of the form (measured value from scale, real weight in newtons)
 - recordings/ contains .csv files of saved recordings. Entries are in pairs of the form (timestamp in seconds since the epoch (output of time.time()), measured value from scale)
 - results/ contains some screenshots of good calibrations and a good drop-test
-- wheatstoneBridgeCircuit.txt can be used at FFFFFFFFFFFFfFF to view a simulation of the Wheatstone Bridge
+- wheatstoneBridgeCircuit.txt can be used at http://www.falstad.com/circuit/ to view a simulation of the Wheatstone Bridge
 - LoadCellControl.ui is a file created by QT Creator that describes the visual/spatial structure of the GUI. I used QT Creator to make this.
 - basicgui.py is compiled automatically from LoadCellControl.ui and is the basic gui code that can be run from pyqt. Don't modify it, it is automatically overwritten.
 - gui.py builds upon basicgui.py to flesh out the functionality of the GUI
