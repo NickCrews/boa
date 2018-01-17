@@ -274,6 +274,7 @@ class Calibration(object):
     CONVERSIONS = {'N': 1.0, 'kg':0.101971621298, 'lbs':0.2248089431}
 
     class Fit(object):
+        '''Used to convert from a measured voltage to applied force, and vice-versa.'''
 
         def __init__(self, m=1, b=0):
             self.m = m
@@ -283,7 +284,7 @@ class Calibration(object):
 
         def __str__(self):
             sign = '+' if self.b >= 0 else '-'
-            return '{:.3} x {} {:.3}'.format(self.m, sign, abs(self.b))
+            return 'F = ({:.3} * V) {} {:.3}'.format(self.m, sign, abs(self.b))
 
         def measured2real(self, inp, toUnits='N'):
             return Calibration.convertBetween(self._f(inp), 'N', toUnits)
@@ -368,6 +369,3 @@ class Calibration(object):
 
 if __name__ == "__main__":
     lcc = LoadCellControl()
-
-
-

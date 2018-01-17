@@ -136,7 +136,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
             if self.calibration.hasFit():
                 self.currentReadingLabel.setText('Current reading ({})'.format(self.units))
             else:
-                self.currentReadingLabel.setText('Current reading (raw)')
+                self.currentReadingLabel.setText('Current reading (Raw Voltage)')
 
     @QtCore.pyqtSlot()
     def clear(self):
@@ -171,7 +171,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
             if self.calibration.hasFit():
                 self.currentReadingLabel.setText('Current reading ({})'.format(self.units))
             else:
-                self.currentReadingLabel.setText('Current reading (raw)')
+                self.currentReadingLabel.setText('Current reading (Raw Voltage)')
 
     @QtCore.pyqtSlot()
     def _addSample(self):
@@ -335,6 +335,12 @@ class Plot(Wrapper, QtCore.QObject):
     chunkSize = 100
     maxChunks = 500
 
+    # create the fontstyle (CSS styling) used for the axes labels
+    # and the QFont used for the tick labels for the axes (WTF why different pyqtgraph?)
+    fontStyle = {'color': '#888', 'font-size': '16pt'}
+    font=QtGui.QFont()
+    font.setPixelSize(16)
+
     # The draggable horizontal line (used for calibration and measurement) is moved
     sigLineChanged = QtCore.pyqtSignal(float)
 
@@ -343,7 +349,8 @@ class Plot(Wrapper, QtCore.QObject):
 
         def __init__(self):
             pg.AxisItem.__init__(self, orientation='bottom')
-            self.setLabel(text='Time', units='')
+            style = {'color': '#FFF', 'font-size': '24pt'}
+            self.setLabel(text='Time', units='', **style)
             self.enableAutoSIPrefix(False)
 
         @classmethod
@@ -377,18 +384,14 @@ class Plot(Wrapper, QtCore.QObject):
         self.fit = None
         self.doAutoscroll = doAutoscroll
 
-        self.disableAutoRange()
-        self.hideButtons()
-        self.setLabel('left', 'raw')
-        self.setLabel('right', units=units)
-        self.hideAxis('right')
-
         self.setDownsampling(mode='peak')
         self.rightAxisViewBox = pg.ViewBox()
         self.plotItem.scene().addItem(self.rightAxisViewBox)
         self.getAxis('right').linkToView(self.rightAxisViewBox)
-        self.rightAxisViewBox.sigYRangeChanged.connect(self._rightAxisChanged)
+        # self.rightAxisViewBox.setStyle()
+        # self.rightAxisViewBox.sigYRangeChanged.connect(self._rightAxisChanged)
         self.sigYRangeChanged.connect(self._leftAxisChanged)
+        self.sigXRangeChanged.connect(self._xChanged)
 
         self.line = pg.InfiniteLine(angle=0, movable=True)
         self.addItem(self.line, ignoreBounds=True)
@@ -398,6 +401,19 @@ class Plot(Wrapper, QtCore.QObject):
         self.addTimeAxis(self.timeAxis)
         self.showGrid(y=True, x=True)
 
+        # set the font of the axes
+        plot.getAxis("left").tickFont = self.font
+        plot.getAxis("bottom").tickFont = self.font
+        plot.getAxis("right").tickFont = self.font
+        # set the font of the axes labels
+        self.setLabel('left', 'Measured Voltage (arbitrary units)', **self.fontStyle)
+        self.setLabel('bottom', **self.fontStyle)
+        self.setLabel('right', units=units, **self.fontStyle)
+
+        self.disableAutoRange()
+        self.hideButtons()
+        self.hideAxis('right')
+
     def addTimeAxis(self, axis):
         pi = self.getPlotItem()
         old = self.getAxis('bottom')
@@ -405,7 +421,6 @@ class Plot(Wrapper, QtCore.QObject):
 
         pos = (3, 1)
         axis.linkToView(self.getViewBox())
-
         pi.axes['bottom'] = {'item': axis, 'pos': pos}
         pi.layout.addItem(axis, *pos)
 
@@ -476,19 +491,19 @@ class Plot(Wrapper, QtCore.QObject):
     def setAutoscroll(self, val):
         self.doAutoscroll = val
 
-    def _rightAxisChanged(self):
-        # if self.fit is not None:
-        #     lo, hi = self.rightAxisViewBox.viewRange()[1]
-        #     lo = self.fit.real2measured(lo, fromUnits=self.units)
-        #     hi = self.fit.real2measured(hi, fromUnits=self.units)
-        #     self._wrapped.blockSignals(True)
-        #     if self.fit.m < 0:
-        #         self.rightAxisViewBox.invertY(True)
-        #     else:
-        #         self.rightAxisViewBox.invertY(False)
-        #     self.setYRange(lo, hi, padding=0)
-        #     self._wrapped.blockSignals(False)
-        pass
+    # def _rightAxisChanged(self):
+    #     # if self.fit is not None:
+    #     #     lo, hi = self.rightAxisViewBox.viewRange()[1]
+    #     #     lo = self.fit.real2measured(lo, fromUnits=self.units)
+    #     #     hi = self.fit.real2measured(hi, fromUnits=self.units)
+    #     #     self._wrapped.blockSignals(True)
+    #     #     if self.fit.m < 0:
+    #     #         self.rightAxisViewBox.invertY(True)
+    #     #     else:
+    #     #         self.rightAxisViewBox.invertY(False)
+    #     #     self.setYRange(lo, hi, padding=0)
+    #     #     self._wrapped.blockSignals(False)
+    #     pass
 
     def _leftAxisChanged(self):
         if self.fit is not None:
@@ -500,6 +515,13 @@ class Plot(Wrapper, QtCore.QObject):
             else:
                 self.rightAxisViewBox.invertY(False)
             self.rightAxisViewBox.setYRange(lo, hi, padding=0)
+
+    def _xChanged(self):
+        lo, hi = self.getRange()
+        print(lo, hi)
+        # self.getAxis('right').setStyle(stopAxisAtTick=(True, True))
+        self.rightAxisViewBox.setXRange(lo, hi, padding=0, update=False)
+        # print(self.rightAxisViewBox.viewRange())
 
     def getRange(self):
         return self.viewRange()[0]
@@ -606,7 +628,7 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
         self.showAxis('left')
         self.sigYRangeChanged.connect(self._viewBoxChanged)
         self.leftAxisViewBox.sigYRangeChanged.connect(self._leftAxisChanged)
-        self.setLabel('bottom', 'Measured Value')
+        self.setLabel('bottom', 'Measured Voltage (arbitrary units)')
         self.enableAutoRange()
         self.addItem(self.scatter)
         self.addItem(self.line)
@@ -632,7 +654,7 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
         self.setLabel('left', 'Real Weight', units=self.units)
         self._viewBoxChanged()
         if self.fit:
-            self.setTitle(self.fit.inUnits(self.units))
+            self.setTitle("Fit: " + str(fit.inUnits(self.units)))
 
     def setFit(self, fit):
         self.fit = fit
@@ -640,7 +662,7 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
             self.setTitle('No Fit')
             self.line.setVisible(False)
         else:
-            self.setTitle(fit.inUnits(self.units))
+            self.setTitle("Fit: " + str(fit.inUnits(self.units)))
             degrees = np.arctan(fit.m) * 180 / np.pi
             onepoint = (0, fit.b)
             self.line.setAngle(degrees)
