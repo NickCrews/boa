@@ -6,6 +6,8 @@ A poster on the project can be found at goo.gl/9RLajr, videos of testing the sen
 
 This repository includes the code to run the Arduino, as well as a python program to view, analyze, save, and load data from the sensor, as well as calibrate the sensor.
 
+![screenshot](https://github.com/NickCrews/ForceSensorController/blob/master/results/Screenshot%20from%202018-01-21%2006-59-46.png)
+
 # Requirements
 - python 2 or 3 (use 2 if you want to use bluetooth)
 - numpy
