@@ -1,5 +1,7 @@
 #include <SoftwareSerial.h>
-#include "HX711.h"
+//Requires the library at
+//https://github.com/bogde/HX711/blob/master/HX711.h
+#include <HX711.h>
 
 #define BT_TX 9
 #define BT_RX 10
