@@ -194,7 +194,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _saveCalibration(self):
-        filename = self._getSaveFile('Save Calibration As...')
+        filename = self._getSaveFile('Save Calibration As...', 'calibrations')
         if not filename:
             return
         if self._areYouSure():
@@ -211,7 +211,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _saveRecording(self):
-        filename = self._getSaveFile('Save Recording As...')
+        filename = self._getSaveFile('Save Recording As...', 'recordings')
         if not filename:
             # user cancelled
             return
@@ -228,16 +228,17 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         dlg.setModal(False)
         return dlg.exec_() == QtGui.QMessageBox.Yes
 
-    def _getSaveFile(self, title):
+    def _getSaveFile(self, title, directory):
         '''Return the filename that the user selects to save to, or '' if cancelled'''
         # we CANT do this nice static method since it's blocking
         # filename = QtGui.QFileDialog.getSaveFileName(
         #            self.mainwindow, 'Save File', '', 'CSV files (*.csv)')
         dlg = QtGui.QFileDialog(self.mainwindow)
         dlg.setWindowTitle(title)
+        dlg.setDirectory(directory)
         dlg.setAcceptMode(QtGui.QFileDialog.AcceptSave)
         dlg.setFileMode(QtGui.QFileDialog.AnyFile)
-        dlg.setFilter("CSV files (*.csv)")
+        dlg.setNameFilter("CSV files (*.csv)")
         dlg.setModal(True)
         if dlg.exec_():
             filename = dlg.selectedFiles()[0]
@@ -257,7 +258,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         dlg.setWindowTitle(title)
         dlg.setDirectory(directory)
         dlg.setFileMode(QtGui.QFileDialog.ExistingFile)
-        dlg.setFilter("CSV files (*.csv)")
+        dlg.setNameFilter("CSV Files (*.csv)")
         dlg.setModal(False)
         if dlg.exec_():
             filename = dlg.selectedFiles()[0]
