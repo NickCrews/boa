@@ -535,6 +535,10 @@ class CalibrationTab(object):
         self.table.highlightPoints(pts)
         self.plot.highlightPoints(pts)
 
+def rnd_pt(pt):
+    x, y = pt
+    return ( int(round(x)), int(round(y)) )
+
 class CalibrationTable(Wrapper, QtCore.QObject):
     sigPointsSelected = QtCore.pyqtSignal(list)
 
@@ -575,13 +579,11 @@ class CalibrationTable(Wrapper, QtCore.QObject):
     def highlightPoints(self, pts):
         self.clearSelection()
         self.blockSignals(True)
-        def rnd(pt):
-            x, y = pt
-            return ( int(round(x)), int(round(y)) )
-        selfRounded = [rnd(pt) for pt in self.pts]
-        targetRounded = [rnd(pt) for pt in pts]
-        for p in targetRounded:
-            index = selfRounded.index(p)
+        # Given a point (rounded), where in our list is it?
+        rounded_to_index = {rnd_pt(pt): i for i, pt in enumerate(self.pts)}
+        for pt in pts:
+            rounded = rnd_pt(pt)
+            index = rounded_to_index[rounded]
             sr = QtGui.QTableWidgetSelectionRange(index, 0, index, 1)
             self.setRangeSelected(sr, True)
 
@@ -621,12 +623,10 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
         return
 
     def setData(self, pts):
-        pts = [(int(x),int(y)) for x,y in pts]
-        self.pts = pts
+        self.pts = [rnd_pt(p) for p in pts]
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', category=Warning)
-            print(pts)
-            self.scatter.setData(pos=pts)
+            self.scatter.setData(pos=self.pts)
 
     def setUnits(self, units):
         self.units = units
@@ -675,13 +675,20 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
     def highlightPoints(self, coords):
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', category=Warning)
+
+            # Un-highlight everything
             for p in self.highlighted:
                 p.resetPen()
-
             self.highlighted = []
-            for meas, real in coords:
-                loc = QtCore.QPointF(meas, real)
-                pts = self.scatter.pointsAt(loc)
-                for p in pts:
-                    p.setPen('b', width=2)
-                    self.highlighted.append(p)
+
+            # Map from a points rounded location back to the point
+            m = {}
+            for p in self.scatter.points():
+                xy = p.pos().x(), p.pos().y()
+                rounded = rnd_pt(xy)
+                m[rounded] = p
+
+            for c in coords:
+                p = m[rnd_pt(c)]
+                p.setPen('b', width=2)
+                self.highlighted.append(p)
