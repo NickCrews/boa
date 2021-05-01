@@ -17,12 +17,14 @@ import pyqtgraph as pg
 import gui
 import scale
 
-class LoadCellControl(object):
+class LoadCellControl(QtCore.QObject):
     '''The main application, consisting of model and GUI
 
         Reads from scale if selected, opens and saves recordings and calibrations'''
 
     def __init__(self):
+        super().__init__()
+
         # init our app and gui
         self.app = QtGui.QApplication([])
         self.gui = gui.GUI(self.app)
