@@ -1,0 +1,10 @@
+# Here are the first-order dependencies of this project.
+# These are compiled into a complete and locked dependency
+# tree, specified in `requirements.txt`
+# See that file for more info.
+numpy
+pip-tools
+PyBluez
+PyQt5
+pyqtgraph
+pyserial

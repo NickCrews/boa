@@ -15,16 +15,28 @@ This repository includes the code to run the Arduino, as well as a python progra
 # Requirements
 
 - python 2 or 3 (use 2 if you want to use bluetooth)
-- numpy
-- pyQT
-- pyqtgraph (extension of pyqt used for the plots)\
-- bluetooth (if you want it, otherwise can do USB)
 
 # Use
 
-`python loadcellcontrol.py`
-OR
-`python3 loadcellcontrol.py`
+First, clone this code. Then, start and enter a virtual environment
+(here we call it `.venv3`) so
+that the dependencies we install don't mess up any of your globally
+installed libraries. Finally, install the requirements into our venv.
+
+```sh
+$ git clone https://github.com/NickCrews/ForceSensorController.git
+$ cd ForceSensorController
+$ python3 -m venv .venv3
+$ source .venv3/bin/activate
+(.venv3)$ pip install -U pip
+(.venv3)$ pip install -r requirements.txt
+```
+
+Now your environment is set up. You can launch the Python GUI with
+
+```sh
+(.venv3)$ python[3] loadcellcontrol.py
+```
 
 Note that python 2 is required to use the python bluetooth library, and thus be able to connect to the arduino wirelessly.
 Try loading up finalCalibration.csv from the Calibrations menu and then one of the recordings from the REcordings menu. Use the AutoRange button to zoom the plot to fit the data.
