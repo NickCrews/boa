@@ -1,22 +1,13 @@
-from __future__ import division
-import sys
-import glob
-import serial
-import multiprocessing
-import time
-import numpy.random as rand
 import atexit
+import glob
+import multiprocessing
+import sys
+import time
 
-try:
-    import bluetooth as bt
-    useBluetooth = True
-except ImportError:
-    print('Warning: Could not load bluetooth')
-    useBluetooth = False
+import bluetooth as bt
+import numpy.random as rand
+import serial
 
-
-class BluetoothNotAvailableException(Exception):
-    pass
 
 class SerialScaleSearcher(object):
     '''Abstract class used to searching for scales connected via USB serial cable.
@@ -74,9 +65,6 @@ class BluetoothScaleSearcher(object):
 
     @classmethod
     def update(cls):
-        if not useBluetooth:
-            raise BluetoothNotAvailableException('The bluetooth (pybluez) module was not imported')
-
         # prune dead scales
         cls.availableScales = [s for s in cls.availableScales if s.isOpen()]
         # add create new Scales
@@ -111,14 +99,11 @@ class BluetoothScaleSearcher(object):
 
 def updateAvailableScales():
     SerialScaleSearcher.update()
-    if useBluetooth:
-        BluetoothScaleSearcher.update()
+    BluetoothScaleSearcher.update()
 
 def availableScales():
     result = SerialScaleSearcher.availableScales
-    if useBluetooth:
-        # print('available scales are ', _serialScales + _bluetoothScales)
-        result.extend(BluetoothScaleSearcher.availableScales)
+    result.extend(BluetoothScaleSearcher.availableScales)
     return result
 
 class Scale(object):
@@ -314,9 +299,6 @@ class BluetoothScale(Scale):
     MAX_BUFFERED_READINGS = 10000
 
     def __init__(self, address, name):
-        if not useBluetooth:
-            raise BluetoothNotAvailableException()
-
         self.address = address
         self.name = name
 
