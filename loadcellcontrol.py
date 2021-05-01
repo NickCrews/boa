@@ -70,9 +70,8 @@ class LoadCellControl(QtCore.QObject):
 
     def readFromScale(self):
         '''Read all of the last readings from the scale, downsample them to our sampleRate, and add them'''
-        if self.scale and self.scale.hasReading():
-            readings = self.scale.read()
-            self.addReadings(readings)
+        if self.scale:
+            self.addReadings(self.scale.read())
 
     def clear(self):
         self.numSamplesLastReading = 0
@@ -370,6 +369,3 @@ class Calibration(object):
 
 if __name__ == "__main__":
     lcc = LoadCellControl()
-
-
-

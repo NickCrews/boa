@@ -121,9 +121,6 @@ class Scale(object):
     def read(self):
         raise NotImplementedError('read() must be overriden in subclasses')
 
-    def hasReading(self):
-        raise NotImplementedError('hasReading() must be overriden in subclasses')
-
 class SerialScale(Scale):
     '''A scale which is connected via USB serial cable'''
 
@@ -168,9 +165,6 @@ class SerialScale(Scale):
         while not self.readingsQ.empty():
             readings.append(self.readingsQ.get())
         return readings
-
-    def hasReading(self):
-        return not self.readingsQ.empty()
 
 class SerialReader(multiprocessing.Process):
     '''Used by SerialScale to read from the scale smoothly in a different process'''
@@ -326,9 +320,6 @@ class BluetoothScale(Scale):
             readings.append(self.readingsQ.get())
         return readings
 
-    def hasReading(self):
-        return not self.readingsQ.empty()
-
 class BluetoothReader(multiprocessing.Process):
 
     PORT = 1
@@ -386,13 +377,8 @@ class PhonyScale(Scale):
         self.last = time.time()
         self.baudrate = 9600
 
-    def hasReading(self):
-        now = time.time()
-        if now-self.last > self.SAMPLE_PERIOD:
-            self.last = now
-            return True
-        else:
-            return False
+    def __str__(self):
+        return "Phony Scale"
 
     def isOpen():
         return True
