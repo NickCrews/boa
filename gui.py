@@ -148,7 +148,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         '''Make it so when we select units or click to open or save
         a recording or calibration, the right thing happens.'''
         self.menuBar.setNativeMenuBar(False)
-        ag = QtGui.QActionGroup(self.mainwindow, exclusive=True)
+        ag = QtGui.QActionGroup(self.mainwindow)
         ag.addAction(self.actionN)
         ag.addAction(self.actionKg)
         ag.addAction(self.actionLbs)
