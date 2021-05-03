@@ -9,6 +9,7 @@ import csv
 import warnings
 from math import fabs
 from collections import deque
+import signal
 
 import numpy as np
 from pyqtgraph.Qt import QtCore, QtGui
@@ -64,6 +65,9 @@ class LoadCellControl(QtCore.QObject):
         self.repaintWindowTimer = pg.QtCore.QTimer()
         self.repaintWindowTimer.timeout.connect(self.readFromScale)
         self.repaintWindowTimer.start(1000/30.0)
+
+        # Make it so ctrl-C signal from terminal actually quits the app
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         # start up the app!
         self.app.exec_()
