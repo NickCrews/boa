@@ -9,9 +9,10 @@ from pyqtgraph.Qt import QtCore, QtGui, uic
 from loadcellcontrol import Calibration
 
 # dynamically generate the gui skeleton file from the ui file
-with open('basicgui.py', 'w') as pyfile:
-    uic.compileUi('LoadCellControl.ui', pyfile)
+with open("basicgui.py", "w") as pyfile:
+    uic.compileUi("LoadCellControl.ui", pyfile)
 import basicgui
+
 
 class GUI(basicgui.Ui_GUI, QtCore.QObject):
     """Interface for displaying data and calibrations,
@@ -39,7 +40,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
         # instance variables
         self.calibration = None
-        self.units = 'N'
+        self.units = "N"
         # used for displaying the average readings for the last
         # historyTime in seconds
         self.historyTime = 1
@@ -63,18 +64,26 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
         def f():
             self.sigScaleChanged.emit(self.scalesComboBox.currentText())
+
         self.scalesComboBox.currentIndexChanged.connect(f)
 
         def f(x):
             self.sigSampleRateChanged.emit(x)
+
         self.srsb.sigValueChanged.connect(f)
 
         def f():
             self.sigBaudrateChanged.emit(int(self.baudrateComboBox.currentText()))
+
         self.baudrateComboBox.currentIndexChanged.connect(f)
 
         def f():
-            self.sigSampleAdded.emit(self.measuredValueSpinBox.value(), self.realValueSpinBox.value(), self.units)
+            self.sigSampleAdded.emit(
+                self.measuredValueSpinBox.value(),
+                self.realValueSpinBox.value(),
+                self.units,
+            )
+
         self.addSampleButton.clicked.connect(f)
 
         self.mainwindow.show()
@@ -86,23 +95,25 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         # Make the LCD 7-segment display show the current weight (using a running average)
         # clear out any old readings and add this new one
         timestamp, val = reading
-        cutoffTime = timestamp-self.historyTime
-        self.lastFewReadings = [(t,v) for t,v in self.lastFewReadings if t>cutoffTime]
+        cutoffTime = timestamp - self.historyTime
+        self.lastFewReadings = [
+            (t, v) for t, v in self.lastFewReadings if t > cutoffTime
+        ]
         self.lastFewReadings.append(reading)
         # show the average reading
-        vals = [v for t,v in self.lastFewReadings]
-        avgVal = sum(vals)/len(vals)
+        vals = [v for t, v in self.lastFewReadings]
+        avgVal = sum(vals) / len(vals)
         if self.calibration and self.calibration.hasFit():
             inNewtons = self.calibration.fit.measured2real(avgVal)
-            avgVal = Calibration.convertBetween(inNewtons, 'N', self.units)
+            avgVal = Calibration.convertBetween(inNewtons, "N", self.units)
         self.currentReadingLCD.display(avgVal)
 
     def setScaleList(self, scales):
-        '''Update the list of available scales
+        """Update the list of available scales
 
         scales:list of str-The name of each scale
         This is a little tricky because we can't clear and then repopulate the combobox,
-        or the current selection would be lost'''
+        or the current selection would be lost"""
         scb = self.scalesComboBox
         # remove any scales from combobox that aren't in scale list
         # The first two items in combobox are "Select and scale..." and "Random Generator." Ignore them.
@@ -134,19 +145,21 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         self.ct.setCalibration(cal)
         if self.calibration:
             if self.calibration.hasFit():
-                self.currentReadingLabel.setText('Current reading ({})'.format(self.units))
+                self.currentReadingLabel.setText(
+                    "Current reading ({})".format(self.units)
+                )
             else:
-                self.currentReadingLabel.setText('Current reading (raw)')
+                self.currentReadingLabel.setText("Current reading (raw)")
 
     @QtCore.pyqtSlot()
     def clear(self):
-        '''Clear all the recorded data from the plots'''
+        """Clear all the recorded data from the plots"""
         self.plot.clear()
         self.sigClear.emit()
 
     def _setupMenubar(self):
-        '''Make it so when we select units or click to open or save
-        a recording or calibration, the right thing happens.'''
+        """Make it so when we select units or click to open or save
+        a recording or calibration, the right thing happens."""
         self.menuBar.setNativeMenuBar(False)
         ag = QtGui.QActionGroup(self.mainwindow)
         ag.addAction(self.actionN)
@@ -161,17 +174,19 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
     @QtCore.pyqtSlot(QtGui.QAction)
     def _unitsChanged(self, act):
-        '''Called when one of the buttons in the menu (a QAction) is triggered'''
+        """Called when one of the buttons in the menu (a QAction) is triggered"""
         self.units = act.text()
         self.plot.setUnits(self.units)
         self.ct.setUnits(self.units)
-        txt = 'Real Weight ({})'.format(self.units)
+        txt = "Real Weight ({})".format(self.units)
         self.realValueLabel.setText(txt)
         if self.calibration:
             if self.calibration.hasFit():
-                self.currentReadingLabel.setText('Current reading ({})'.format(self.units))
+                self.currentReadingLabel.setText(
+                    "Current reading ({})".format(self.units)
+                )
             else:
-                self.currentReadingLabel.setText('Current reading (raw)')
+                self.currentReadingLabel.setText("Current reading (raw)")
 
     @QtCore.pyqtSlot()
     def _addSample(self):
@@ -186,7 +201,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _openCalibration(self):
-        filename = self._getOpenFile('Open Calibration...', 'calibrations')
+        filename = self._getOpenFile("Open Calibration...", "calibrations")
         if not filename:
             return
         if self._areYouSure():
@@ -194,7 +209,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _saveCalibration(self):
-        filename = self._getSaveFile('Save Calibration As...', 'calibrations')
+        filename = self._getSaveFile("Save Calibration As...", "calibrations")
         if not filename:
             return
         if self._areYouSure():
@@ -202,7 +217,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _openRecording(self):
-        filename = self._getOpenFile('Open Recording...', 'recordings')
+        filename = self._getOpenFile("Open Recording...", "recordings")
         if not filename:
             # user cancelled
             return
@@ -211,7 +226,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _saveRecording(self):
-        filename = self._getSaveFile('Save Recording As...', 'recordings')
+        filename = self._getSaveFile("Save Recording As...", "recordings")
         if not filename:
             # user cancelled
             return
@@ -229,7 +244,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         return dlg.exec_() == QtGui.QMessageBox.Yes
 
     def _getSaveFile(self, title, directory):
-        '''Return the filename that the user selects to save to, or '' if cancelled'''
+        """Return the filename that the user selects to save to, or '' if cancelled"""
         # we CANT do this nice static method since it's blocking
         # filename = QtGui.QFileDialog.getSaveFileName(
         #            self.mainwindow, 'Save File', '', 'CSV files (*.csv)')
@@ -242,18 +257,18 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         dlg.setModal(True)
         if dlg.exec_():
             filename = dlg.selectedFiles()[0]
-            if filename[-4:] != '.csv':
-                filename += '.csv'
+            if filename[-4:] != ".csv":
+                filename += ".csv"
             return filename
         # user cancelled
-        return ''
+        return ""
 
     def _getOpenFile(self, title, directory):
-        '''Open a file dialog for choosing either
+        """Open a file dialog for choosing either
         calibration or recording data
         we CANT do this nice static method since it's blocking
         filename = QtGui.QFileDialog.getOpemFileName(
-                   self.mainwindow, 'Open File', '', 'CSV files (*.csv)')'''
+                   self.mainwindow, 'Open File', '', 'CSV files (*.csv)')"""
         dlg = QtGui.QFileDialog(self.mainwindow)
         dlg.setWindowTitle(title)
         dlg.setDirectory(directory)
@@ -264,7 +279,8 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
             filename = dlg.selectedFiles()[0]
             return filename
         # user cancelled
-        return ''
+        return ""
+
 
 class Wrapper(object):
     """A class for objects that will wrap around already
@@ -279,14 +295,16 @@ class Wrapper(object):
         return getattr(self._wrapped, attr)
 
     def __setattr__(self, attr, val):
-        if attr == '_wrapped':
+        if attr == "_wrapped":
             object.__setattr__(self, attr, val)
         else:
             return setattr(self._wrapped, attr, val)
 
+
 class CustomSampleRateSpinBox(Wrapper, QtCore.QObject):
-    '''Take the normal spinbox which contains interger values 1-80,
-     and throw on the values .1, .2, .5 at the beginning'''
+    """Take the normal spinbox which contains interger values 1-80,
+    and throw on the values .1, .2, .5 at the beginning"""
+
     sigValueChanged = QtCore.pyqtSignal(float)
     vals = [0.1, 0.2, 0.5]
 
@@ -299,7 +317,7 @@ class CustomSampleRateSpinBox(Wrapper, QtCore.QObject):
         self.valueChanged.connect(self.adjust)
 
     def adjust(self):
-        '''Called whenever the value is adjusted either up or down'''
+        """Called whenever the value is adjusted either up or down"""
         new = self.value()
         old = self.__old
         v = self.vals
@@ -328,6 +346,7 @@ class CustomSampleRateSpinBox(Wrapper, QtCore.QObject):
         self.__old = self.value()
         self.sigValueChanged.emit(self.value())
 
+
 class Plot(Wrapper, QtCore.QObject):
     """A wrapper class for the plots in our gui"""
 
@@ -340,25 +359,25 @@ class Plot(Wrapper, QtCore.QObject):
     sigLineChanged = QtCore.pyqtSignal(float)
 
     class TimeAxisItem(pg.AxisItem):
-        '''Custom little class to better label the times on the x-axis of the plot'''
+        """Custom little class to better label the times on the x-axis of the plot"""
 
         def __init__(self):
-            pg.AxisItem.__init__(self, orientation='bottom')
-            self.setLabel(text='Time', units='')
+            pg.AxisItem.__init__(self, orientation="bottom")
+            self.setLabel(text="Time", units="")
             self.enableAutoSIPrefix(False)
 
         @classmethod
         def time2millis(cls, value):
-            sec = time.strftime('%X', time.localtime(value))
-            millis = str(value-int(value))[1:5]
+            sec = time.strftime("%X", time.localtime(value))
+            millis = str(value - int(value))[1:5]
             AMPM = sec[-3:]
             REST = sec[:-3]
             return REST + millis + AMPM
 
         def tickStrings(self, values, scale, spacing):
-            '''Generate the string labels given a list of time values.
+            """Generate the string labels given a list of time values.
 
-            Depending on how zoomed in we are, give different resolutions.'''
+            Depending on how zoomed in we are, give different resolutions."""
             DAY_LENGTH = 60 * 60 * 24
             SECOND_LENGTH = 1
             if spacing > DAY_LENGTH:
@@ -368,7 +387,7 @@ class Plot(Wrapper, QtCore.QObject):
             else:
                 return [self.time2millis(value) for value in values]
 
-    def __init__(self, plot, doAutoscroll, units='N'):
+    def __init__(self, plot, doAutoscroll, units="N"):
         Wrapper.__init__(self, plot)
         QtCore.QObject.__init__(self)
         self._curves = []
@@ -380,20 +399,22 @@ class Plot(Wrapper, QtCore.QObject):
 
         self.disableAutoRange()
         self.hideButtons()
-        self.setLabel('left', 'raw')
-        self.setLabel('right', units=units)
-        self.hideAxis('right')
+        self.setLabel("left", "raw")
+        self.setLabel("right", units=units)
+        self.hideAxis("right")
 
-        self.setDownsampling(mode='peak')
+        self.setDownsampling(mode="peak")
         self.rightAxisViewBox = pg.ViewBox()
         self.plotItem.scene().addItem(self.rightAxisViewBox)
-        self.getAxis('right').linkToView(self.rightAxisViewBox)
+        self.getAxis("right").linkToView(self.rightAxisViewBox)
         self.rightAxisViewBox.sigYRangeChanged.connect(self._rightAxisChanged)
         self.sigYRangeChanged.connect(self._leftAxisChanged)
 
         self.line = pg.InfiniteLine(angle=0, movable=True)
         self.addItem(self.line, ignoreBounds=True)
-        self.line.sigPositionChanged.connect(lambda: self.sigLineChanged.emit(self.line.value()))
+        self.line.sigPositionChanged.connect(
+            lambda: self.sigLineChanged.emit(self.line.value())
+        )
 
         self.timeAxis = Plot.TimeAxisItem()
         self.addTimeAxis(self.timeAxis)
@@ -401,13 +422,13 @@ class Plot(Wrapper, QtCore.QObject):
 
     def addTimeAxis(self, axis):
         pi = self.getPlotItem()
-        old = self.getAxis('bottom')
+        old = self.getAxis("bottom")
         pi.layout.removeItem(old)
 
         pos = (3, 1)
         axis.linkToView(self.getViewBox())
 
-        pi.axes['bottom'] = {'item': axis, 'pos': pos}
+        pi.axes["bottom"] = {"item": axis, "pos": pos}
         pi.layout.addItem(axis, *pos)
 
         # make it so that we can drag around the plot
@@ -415,11 +436,11 @@ class Plot(Wrapper, QtCore.QObject):
         axis.setFlag(axis.ItemNegativeZStacksBehindParent)
 
     def add(self, timestamp, val):
-        '''Add one data point to the plot.
+        """Add one data point to the plot.
 
 
         The Plot object stores data in a list of plot items
-        '''
+        """
         i = self._ptr % self.chunkSize
         if i == 0:
             curve = self.plot()
@@ -436,7 +457,7 @@ class Plot(Wrapper, QtCore.QObject):
         else:
             curve = self._curves[-1]
         self._current[i + 1] = [timestamp, val]
-        curve.setData(x=self._current[:i + 2, 0], y=self._current[:i + 2, 1])
+        curve.setData(x=self._current[: i + 2, 0], y=self._current[: i + 2, 1])
         self._ptr += 1
 
         if self.doAutoscroll:
@@ -454,25 +475,25 @@ class Plot(Wrapper, QtCore.QObject):
 
     def setUnits(self, units):
         self.units = units
-        self.setLabel('right', units=units)
+        self.setLabel("right", units=units)
         if self.fit is not None:
-            self.showAxis('right')
+            self.showAxis("right")
             self._leftAxisChanged()
-            self.getAxis('left').setGrid(False)
+            self.getAxis("left").setGrid(False)
         else:
-            self.hideAxis('right')
-            self.getAxis('left').setGrid(127)
+            self.hideAxis("right")
+            self.getAxis("left").setGrid(127)
 
     def setFit(self, fit):
         """Set the conversion function between raw units and real units"""
         self.fit = fit
         if self.fit is not None:
-            self.showAxis('right')
+            self.showAxis("right")
             self._leftAxisChanged()
-            self.getAxis('left').setGrid(False)
+            self.getAxis("left").setGrid(False)
         else:
-            self.hideAxis('right')
-            self.getAxis('left').setGrid(127)
+            self.hideAxis("right")
+            self.getAxis("left").setGrid(127)
 
     def setAutoscroll(self, val):
         self.doAutoscroll = val
@@ -505,10 +526,12 @@ class Plot(Wrapper, QtCore.QObject):
     def getRange(self):
         return self.viewRange()[0]
 
+
 class CalibrationTab(object):
-    '''Includes a way of displaying a calibration
+    """Includes a way of displaying a calibration
     as a table and a plot. The add/remove button
-    functionality is dealt with elsewhere'''
+    functionality is dealt with elsewhere"""
+
     def __init__(self, table, plot, units):
         self.units = units
         self.calibration = None
@@ -535,9 +558,11 @@ class CalibrationTab(object):
         self.table.highlightPoints(pts)
         self.plot.highlightPoints(pts)
 
+
 def rnd_pt(pt):
     x, y = pt
-    return ( int(round(x)), int(round(y)) )
+    return (int(round(x)), int(round(y)))
+
 
 class CalibrationTable(Wrapper, QtCore.QObject):
     sigPointsSelected = QtCore.pyqtSignal(list)
@@ -560,8 +585,10 @@ class CalibrationTable(Wrapper, QtCore.QObject):
     def _update(self):
         self.setRowCount(len(self.pts))
         for i, (measured, real) in enumerate(self.pts):
-            converted = Calibration.convertBetween(real, 'N', self.units)
-            a, b = QtGui.QTableWidgetItem(str(measured)), QtGui.QTableWidgetItem(str(converted))
+            converted = Calibration.convertBetween(real, "N", self.units)
+            a, b = QtGui.QTableWidgetItem(str(measured)), QtGui.QTableWidgetItem(
+                str(converted)
+            )
             self.setItem(i, 0, a)
             self.setItem(i, 1, b)
 
@@ -589,9 +616,11 @@ class CalibrationTable(Wrapper, QtCore.QObject):
 
         self.blockSignals(False)
 
+
 class CalibrationPlot(Wrapper, QtCore.QObject):
-    '''A Scatter plot of all the sample data points,
-    plus a line of best fit overlayed'''
+    """A Scatter plot of all the sample data points,
+    plus a line of best fit overlayed"""
+
     sigPointsSelected = QtCore.pyqtSignal(list)
 
     def __init__(self, plot, units):
@@ -605,19 +634,21 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
         self.units = units
         self.leftAxisViewBox = pg.ViewBox()
         self.plotItem.scene().addItem(self.leftAxisViewBox)
-        self.getAxis('left').linkToView(self.leftAxisViewBox)
-        self.showAxis('left')
+        self.getAxis("left").linkToView(self.leftAxisViewBox)
+        self.showAxis("left")
         self.sigYRangeChanged.connect(self._viewBoxChanged)
         self.leftAxisViewBox.sigYRangeChanged.connect(self._leftAxisChanged)
-        self.setLabel('bottom', 'Measured Value')
+        self.setLabel("bottom", "Measured Value")
         self.enableAutoRange()
         self.addItem(self.scatter)
         self.addItem(self.line)
         self.setFit(self.fit)
         self.setUnits(self.units)
         self.showGrid(x=True, y=True)
+
         def f(rect):
             self.leftAxisViewBox.setGeometry(rect)
+
         self.getPlotItem().vb.scene().sceneRectChanged.connect(f)
         self.scatter.sigClicked.connect(self._clicked)
         return
@@ -625,12 +656,12 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
     def setData(self, pts):
         self.pts = [rnd_pt(p) for p in pts]
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', category=Warning)
+            warnings.filterwarnings("ignore", category=Warning)
             self.scatter.setData(pos=self.pts)
 
     def setUnits(self, units):
         self.units = units
-        self.setLabel('left', 'Real Weight', units=self.units)
+        self.setLabel("left", "Real Weight", units=self.units)
         self._viewBoxChanged()
         if self.fit:
             self.setTitle(self.fit.inUnits(self.units))
@@ -638,7 +669,7 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
     def setFit(self, fit):
         self.fit = fit
         if fit is None:
-            self.setTitle('No Fit')
+            self.setTitle("No Fit")
             self.line.setVisible(False)
         else:
             self.setTitle(fit.inUnits(self.units))
@@ -652,29 +683,29 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
 
     def _leftAxisChanged(self):
         lo, hi = self.leftAxisViewBox.viewRange()[1]
-        lo = Calibration.convertBetween(lo, self.units, 'N')
-        hi = Calibration.convertBetween(hi, self.units, 'N')
+        lo = Calibration.convertBetween(lo, self.units, "N")
+        hi = Calibration.convertBetween(hi, self.units, "N")
         self.blockSignals(True)
         self.setYRange(lo, hi, padding=0)
         self.blockSignals(False)
 
     def _viewBoxChanged(self):
         lo, hi = self.viewRange()[1]
-        lo = Calibration.convertBetween(lo, 'N', self.units)
-        hi = Calibration.convertBetween(hi, 'N', self.units)
+        lo = Calibration.convertBetween(lo, "N", self.units)
+        hi = Calibration.convertBetween(hi, "N", self.units)
         # self.leftAxisViewBox.blockSignals(True)
         self.leftAxisViewBox.setYRange(lo, hi, padding=0)
         # self.leftAxisViewBox.blockSignals(False)
 
     def _clicked(self, _, pointItems):
-        '''Callback method which is called
-        whenever some points on the scatterplot are clicked'''
+        """Callback method which is called
+        whenever some points on the scatterplot are clicked"""
         coords = [(p.pos().x(), p.pos().y()) for p in pointItems]
         self.sigPointsSelected.emit(coords)
 
     def highlightPoints(self, coords):
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore', category=Warning)
+            warnings.filterwarnings("ignore", category=Warning)
 
             # Un-highlight everything
             for p in self.highlighted:
@@ -690,5 +721,5 @@ class CalibrationPlot(Wrapper, QtCore.QObject):
 
             for c in coords:
                 p = m[rnd_pt(c)]
-                p.setPen('b', width=2)
+                p.setPen("b", width=2)
                 self.highlighted.append(p)

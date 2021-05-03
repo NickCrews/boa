@@ -10,14 +10,16 @@ import serial
 
 
 class SerialScaleSearcher(object):
-    '''Abstract class used to searching for scales connected via USB serial cable.
+    """Abstract class used to searching for scales connected via USB serial cable.
 
-    This search is pretty fast so we don't have to do it in a different process'''
+    This search is pretty fast so we don't have to do it in a different process"""
 
     availableScales = []
 
     def __init__(self):
-        raise NotImplementedError('Cannot instantiate the helper class SerialScaleSearcher')
+        raise NotImplementedError(
+            "Cannot instantiate the helper class SerialScaleSearcher"
+        )
 
     @classmethod
     def update(cls):
@@ -25,18 +27,20 @@ class SerialScaleSearcher(object):
         cls.availableScales = [s for s in cls.availableScales if s.isOpen()]
 
         # get all possible ports
-        if sys.platform.startswith('win'):
-            ports = ['COM%s' % (i + 1) for i in range(256)]
-        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        if sys.platform.startswith("win"):
+            ports = ["COM%s" % (i + 1) for i in range(256)]
+        elif sys.platform.startswith("linux") or sys.platform.startswith("cygwin"):
             # this excludes your current terminal "/dev/tty"
-            ports = glob.glob('/dev/tty[A-Za-z]*')
-        elif sys.platform.startswith('darwin'):
-            ports = glob.glob('/dev/tty.*')
+            ports = glob.glob("/dev/tty[A-Za-z]*")
+        elif sys.platform.startswith("darwin"):
+            ports = glob.glob("/dev/tty.*")
         else:
-            raise EnvironmentError('Unsupported platform')
+            raise EnvironmentError("Unsupported platform")
 
         # filter out the bad ones, ignoring ones we already have added and add them
-        alreadyOpenPorts = [s.port for s in cls.availableScales if isinstance(s, SerialScale)]
+        alreadyOpenPorts = [
+            s.port for s in cls.availableScales if isinstance(s, SerialScale)
+        ]
         for port in ports:
             if port in alreadyOpenPorts:
                 continue
@@ -49,19 +53,22 @@ class SerialScaleSearcher(object):
             except (OSError, serial.SerialException):
                 pass
 
-class BluetoothScaleSearcher(object):
-    '''Abstract class used to search for available bluetooth scales.
 
-    The actual search is blocking, and takes a few seconds, so that is done in a different process'''
+class BluetoothScaleSearcher(object):
+    """Abstract class used to search for available bluetooth scales.
+
+    The actual search is blocking, and takes a few seconds, so that is done in a different process"""
 
     availableScales = []
     _amSearchingFlag = multiprocessing.Event()
     Q = multiprocessing.Queue()
 
-    SCALE_NAME = 'HC-05'
+    SCALE_NAME = "HC-05"
 
     def __init__(self):
-        raise NotImplementedError('Cannot instantiate the helper class SerialScaleSearcher')
+        raise NotImplementedError(
+            "Cannot instantiate the helper class SerialScaleSearcher"
+        )
 
     @classmethod
     def update(cls):
@@ -79,8 +86,10 @@ class BluetoothScaleSearcher(object):
 
         def search():
             try:
-                print('starting scan for bluetooth scales')
-                nearby_devices = bt.discover_devices(lookup_names=True, flush_cache=True)
+                print("starting scan for bluetooth scales")
+                nearby_devices = bt.discover_devices(
+                    lookup_names=True, flush_cache=True
+                )
                 for addr, name in nearby_devices:
                     # print('found a device', addr, name)
                     if name == cls.SCALE_NAME and addr not in openAddresses:
@@ -97,32 +106,36 @@ class BluetoothScaleSearcher(object):
         cls._amSearchingFlag.set()
         p.start()
 
+
 def updateAvailableScales():
     SerialScaleSearcher.update()
     BluetoothScaleSearcher.update()
+
 
 def availableScales():
     result = SerialScaleSearcher.availableScales
     result.extend(BluetoothScaleSearcher.availableScales)
     return result
 
+
 class Scale(object):
-    '''Abstract class which is inherited by SerialScale and BluetoothScale'''
+    """Abstract class which is inherited by SerialScale and BluetoothScale"""
 
     def __init__(self):
-        raise NotImplementedError('Cannot instantiate the abstract class Scale')
+        raise NotImplementedError("Cannot instantiate the abstract class Scale")
 
     def isOpen(self):
-        raise NotImplementedError('isOpen() must be overriden in subclasses')
+        raise NotImplementedError("isOpen() must be overriden in subclasses")
 
     def close(self):
-        raise NotImplementedError('close() must be overriden in subclasses')
+        raise NotImplementedError("close() must be overriden in subclasses")
 
     def read(self):
-        raise NotImplementedError('read() must be overriden in subclasses')
+        raise NotImplementedError("read() must be overriden in subclasses")
+
 
 class SerialScale(Scale):
-    '''A scale which is connected via USB serial cable'''
+    """A scale which is connected via USB serial cable"""
 
     MAX_BUFFERED_READINGS = 10000
 
@@ -138,11 +151,17 @@ class SerialScale(Scale):
         self.reader.start()
 
     def __repr__(self):
-        status = 'open' if self.isOpen() else 'closed'
-        return status + ' Serial Scale at port ' + self.port + ' with baudrate ' + str(self.baudrate)
+        status = "open" if self.isOpen() else "closed"
+        return (
+            status
+            + " Serial Scale at port "
+            + self.port
+            + " with baudrate "
+            + str(self.baudrate)
+        )
 
     def __str__(self):
-        return 'Serial Scale at ' + self.port
+        return "Serial Scale at " + self.port
 
     def isOpen(self):
         return self.reader.is_alive()
@@ -158,7 +177,7 @@ class SerialScale(Scale):
     @baudrate.setter
     def baudrate(self, newval):
         self._baudrate = newval
-        self.commandQ.put({'attr':'baudrate', 'val':newval})
+        self.commandQ.put({"attr": "baudrate", "val": newval})
 
     def read(self):
         readings = []
@@ -166,8 +185,9 @@ class SerialScale(Scale):
             readings.append(self.readingsQ.get())
         return readings
 
+
 class SerialReader(multiprocessing.Process):
-    '''Used by SerialScale to read from the scale smoothly in a different process'''
+    """Used by SerialScale to read from the scale smoothly in a different process"""
 
     # in seconds
     LINK_TIMEOUT = 5
@@ -200,7 +220,7 @@ class SerialReader(multiprocessing.Process):
                     # poison pill, exit this process
                     break
                 else:
-                    setattr(self, cmd['attr'], cmd['val'])
+                    setattr(self, cmd["attr"], cmd["val"])
             # read a line or timeout and return empty string
             line = self._readline()
             if line:
@@ -234,15 +254,15 @@ class SerialReader(multiprocessing.Process):
                 return None
             chars.append(c)
             # check last two characters
-            if chars[-2:] == [b'\r', b'\n']:
+            if chars[-2:] == [b"\r", b"\n"]:
                 # looks promising...
                 try:
                     strs = [c.decode() for c in chars[:-2]]
-                    result = ''.join(strs)
+                    result = "".join(strs)
                     return result
                 except:
                     # problem parsing, must be some other problem
-                    return 'error'
+                    return "error"
             else:
                 # got end of line or there's a problem with baudrate so we never get eol
                 return None
@@ -256,16 +276,17 @@ class SerialReader(multiprocessing.Process):
         except ValueError as e:
             raise e
         if not self._ser.is_open:
-            raise serial.SerialException('couldn\'t open the port {port_name}'.format(port_name = self._ser.name))
+            raise serial.SerialException(
+                "couldn't open the port {port_name}".format(port_name=self._ser.name)
+            )
         self._ser.timeout = self.READ_TIMEOUT
-        print('successfully opened serial port', self.portname)
-
+        print("successfully opened serial port", self.portname)
 
     def _waitForLink(self):
-        '''The Arduino reboots when it initiates a USB serial connection, so wait for it to resume streaming readings'''
+        """The Arduino reboots when it initiates a USB serial connection, so wait for it to resume streaming readings"""
         start_time = time.time()
         while True:
-            time.sleep(.1)
+            time.sleep(0.1)
             if self._ser.in_waiting:
                 # We got a reading! Hurray!
                 break
@@ -288,6 +309,7 @@ class SerialReader(multiprocessing.Process):
         if self._ser:
             self._ser.baudrate = newval
 
+
 class BluetoothScale(Scale):
 
     MAX_BUFFERED_READINGS = 10000
@@ -302,11 +324,17 @@ class BluetoothScale(Scale):
         self.reader.start()
 
     def __repr__(self):
-        status = 'open' if self.isOpen() else 'closed'
-        return status + ' Bluetooth Scale at address ' + self.address + ' with name ' + self.name
+        status = "open" if self.isOpen() else "closed"
+        return (
+            status
+            + " Bluetooth Scale at address "
+            + self.address
+            + " with name "
+            + self.name
+        )
 
     def __str__(self):
-        return 'Bluetooth Scale ' + self.name
+        return "Bluetooth Scale " + self.name
 
     def close(self):
         self.quitFlag.set()
@@ -319,6 +347,7 @@ class BluetoothScale(Scale):
         while not self.readingsQ.empty():
             readings.append(self.readingsQ.get())
         return readings
+
 
 class BluetoothReader(multiprocessing.Process):
 
@@ -356,22 +385,26 @@ class BluetoothReader(multiprocessing.Process):
         self._close()
 
     def _readline(self):
-        result = ''
+        result = ""
         for i in range(self.MAX_PACKET_SIZE):
             byte = self._sock.recv(1)
             result += byte
-            if result.endswith('\r\n'):
+            if result.endswith("\r\n"):
                 return result[:-2]
-        raise IOError('lost connection with bluetooth scale at address %s'% str(self._sock.getsockname()))
+        raise IOError(
+            "lost connection with bluetooth scale at address %s"
+            % str(self._sock.getsockname())
+        )
 
     def _close(self):
         if self._sock:
             self._sock.close()
 
-class PhonyScale(Scale):
-    '''Useful for generating random noise for testing GUI if an actual scale isn't present'''
 
-    SAMPLE_PERIOD = 1.0/80
+class PhonyScale(Scale):
+    """Useful for generating random noise for testing GUI if an actual scale isn't present"""
+
+    SAMPLE_PERIOD = 1.0 / 80
 
     def __init__(self):
         self.last = time.time()
@@ -387,7 +420,7 @@ class PhonyScale(Scale):
         now = time.time()
         readings = []
         for timestamp in self.frange(self.last, now, self.SAMPLE_PERIOD):
-            val = int(rand.normal()*100)
+            val = int(rand.normal() * 100)
             readings.append((timestamp, val))
         return readings
 
@@ -396,7 +429,7 @@ class PhonyScale(Scale):
 
     @staticmethod
     def frange(start, stop=None, inc=None):
-        '''A range() method for floats'''
+        """A range() method for floats"""
         if stop is None:
             stop = start
             start = 0.0
@@ -413,5 +446,5 @@ class PhonyScale(Scale):
 
         while shouldContinue(result, stop):
             yield result
-            result = start + i*inc
+            result = start + i * inc
             i += 1

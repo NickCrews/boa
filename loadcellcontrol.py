@@ -18,10 +18,11 @@ import pyqtgraph as pg
 import gui
 import scale
 
-class LoadCellControl(QtCore.QObject):
-    '''The main application, consisting of model and GUI
 
-        Reads from scale if selected, opens and saves recordings and calibrations'''
+class LoadCellControl(QtCore.QObject):
+    """The main application, consisting of model and GUI
+
+    Reads from scale if selected, opens and saves recordings and calibrations"""
 
     def __init__(self):
         super().__init__()
@@ -64,7 +65,7 @@ class LoadCellControl(QtCore.QObject):
         # readFromScale() is buffered, so we will still get the full 80Hz samplerate
         self.repaintWindowTimer = pg.QtCore.QTimer()
         self.repaintWindowTimer.timeout.connect(self.readFromScale)
-        self.repaintWindowTimer.start(1000/30.0)
+        self.repaintWindowTimer.start(1000 / 30.0)
 
         # Make it so ctrl-C signal from terminal actually quits the app
         signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -73,7 +74,7 @@ class LoadCellControl(QtCore.QObject):
         self.app.exec_()
 
     def readFromScale(self):
-        '''Read all of the last readings from the scale, downsample them to our sampleRate, and add them'''
+        """Read all of the last readings from the scale, downsample them to our sampleRate, and add them"""
         if self.scale:
             self.addReadings(self.scale.read())
 
@@ -84,15 +85,15 @@ class LoadCellControl(QtCore.QObject):
 
     @staticmethod
     def _round(x, base, prec=100):
-        '''Round to an arbitrary base (eg multiples of 3) to a precision of a certain number of decimal places'''
-        return round(base * round(float(x)/base), prec)
+        """Round to an arbitrary base (eg multiples of 3) to a precision of a certain number of decimal places"""
+        return round(base * round(float(x) / base), prec)
 
     @classmethod
     def _downSampleReadings(cls, readings, sampleInterval):
-        '''Takes a list of of form [(time, val), ...] and round all times to multiples of sampleRate,
+        """Takes a list of of form [(time, val), ...] and round all times to multiples of sampleRate,
         averaging all readings from the same time. Returns list of form [(roundedtime, val, numsamplesperroundedtimereading),...]
 
-        ex: [(1, 4), (3, 6), (4, 8)] -> [(0, 4, 1), (5, 7, 2)] for sampleRate = 5'''
+        ex: [(1, 4), (3, 6), (4, 8)] -> [(0, 4, 1), (5, 7, 2)] for sampleRate = 5"""
         # make a dict holding mapping from rounded times to a list of values for that roundedTime
         d = {}
         for time, val in readings:
@@ -103,7 +104,7 @@ class LoadCellControl(QtCore.QObject):
                 d[roundedTime] = [val]
 
         def avg(vals):
-            return sum(vals)/len(vals)
+            return sum(vals) / len(vals)
 
         result = [(rt, avg(vals), len(vals)) for rt, vals in d.items()]
         result.sort(key=lambda t: t[0])
@@ -113,13 +114,13 @@ class LoadCellControl(QtCore.QObject):
         self.addReadings([reading])
 
     def addReadings(self, readings):
-        '''Add a list of (time, value) pairs to our saved list'''
+        """Add a list of (time, value) pairs to our saved list"""
         if len(readings) < 1:
             return
         # Say our samplerate is 10Hz. We want all our readings to be
         # at the even time interval of .1 seconds
         # Therefore we need to interpolate and downsample our data to mesh with this
-        sampleInterval = 1.0/self.sampleRate
+        sampleInterval = 1.0 / self.sampleRate
         downsampled = self._downSampleReadings(readings, sampleInterval)
         # Now we have to merge the list of new samples with the list of old samples
         # look at time, value, and numsamples of first reading
@@ -128,15 +129,15 @@ class LoadCellControl(QtCore.QObject):
             lastTime, lastVal = self.data[-1]
             # The first sample within our new list might overlap
             # with the last sample within the old data
-            if fabs(t-lastTime) < sampleInterval:
+            if fabs(t - lastTime) < sampleInterval:
                 # we need to merge last entry of old data with first entry of new data
                 nslr = self.numSamplesLastReading
-                avgVal = (lastVal*nslr + v*n) / (nslr+n)
+                avgVal = (lastVal * nslr + v * n) / (nslr + n)
                 newestTime = max(t, lastTime)
                 # Modify the last entry from old data and forget the first entry from new readings
                 self.data[-1] = (newestTime, avgVal)
                 newPoints = downsampled[1:]
-                self.numSamplesLastReading = nslr+n
+                self.numSamplesLastReading = nslr + n
             else:
                 # we dont need to merge
                 newPoints = downsampled
@@ -146,7 +147,7 @@ class LoadCellControl(QtCore.QObject):
             newPoints = downsampled
             t, v, self.numSamplesLastReading = downsampled[-1]
 
-        #cool, so now lets add these
+        # cool, so now lets add these
         timesAndVals = [(t, v) for t, v, n in newPoints]
         self.data.extend(timesAndVals)
         for pt in timesAndVals:
@@ -164,15 +165,15 @@ class LoadCellControl(QtCore.QObject):
             return
         inRange = arr[ilo:ihi]
         # write those data points to file
-        with open(filename, 'w') as out:
+        with open(filename, "w") as out:
             csv_out = csv.writer(out)
-            csv_out.writerow(['time', 'raw reading'])
+            csv_out.writerow(["time", "raw reading"])
             for row in inRange:
                 csv_out.writerow(row)
 
     @QtCore.pyqtSlot(str)
     def openRecording(self, filename):
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             self.clear()
             r = csv.reader(f)
             pts = []
@@ -188,7 +189,7 @@ class LoadCellControl(QtCore.QObject):
 
     @QtCore.pyqtSlot(str)
     def openCalibration(self, filename):
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             r = csv.reader(f)
             pts = []
             for row in r:
@@ -207,9 +208,9 @@ class LoadCellControl(QtCore.QObject):
         # is our calibration empty? ignore it.
         if len(self.calibration) == 0:
             return
-        with open(filename, 'w') as out:
+        with open(filename, "w") as out:
             csv_out = csv.writer(out)
-            csv_out.writerow(['measured', 'real'])
+            csv_out.writerow(["measured", "real"])
             for row in self.calibration.pts:
                 csv_out.writerow(row)
 
@@ -225,9 +226,9 @@ class LoadCellControl(QtCore.QObject):
 
     @QtCore.pyqtSlot(str)
     def useScale(self, name):
-        if name == 'Select...':
+        if name == "Select...":
             self.scale = None
-        elif name == 'Random Generator':
+        elif name == "Random Generator":
             self.scale = self.randomGenerator
         else:
             for s in self.scales:
@@ -272,14 +273,14 @@ class LoadCellControl(QtCore.QObject):
             self.calibration.removePoint(p)
         self.gui.setCalibration(self.calibration)
 
+
 class Calibration(object):
-    '''Represents a set of (raw reading, real weight) pairs the linear relationship in between them.'''
+    """Represents a set of (raw reading, real weight) pairs the linear relationship in between them."""
 
     # 1N = .1019kg = .2248lbs
-    CONVERSIONS = {'N': 1.0, 'kg':0.101971621298, 'lbs':0.2248089431}
+    CONVERSIONS = {"N": 1.0, "kg": 0.101971621298, "lbs": 0.2248089431}
 
     class Fit(object):
-
         def __init__(self, m=1, b=0):
             self.m = m
             self.b = b
@@ -287,26 +288,25 @@ class Calibration(object):
             self._f = np.poly1d((m, b))
 
         def __str__(self):
-            sign = '+' if self.b >= 0 else '-'
-            return '{:.3} x {} {:.3}'.format(self.m, sign, abs(self.b))
+            sign = "+" if self.b >= 0 else "-"
+            return "{:.3} x {} {:.3}".format(self.m, sign, abs(self.b))
 
-        def measured2real(self, inp, toUnits='N'):
-            return Calibration.convertBetween(self._f(inp), 'N', toUnits)
+        def measured2real(self, inp, toUnits="N"):
+            return Calibration.convertBetween(self._f(inp), "N", toUnits)
 
-        def real2measured(self, inp, fromUnits='N'):
-            newtons = Calibration.convertBetween(inp, fromUnits, 'N')
-            m2 = 1.0/self.m
-            b2 = -self.b/self.m
+        def real2measured(self, inp, fromUnits="N"):
+            newtons = Calibration.convertBetween(inp, fromUnits, "N")
+            m2 = 1.0 / self.m
+            b2 = -self.b / self.m
             f = np.poly1d((m2, b2))
             return f(newtons)
 
         def inUnits(self, units):
-            m2 = Calibration.convertBetween(self.m, 'N', units)
-            b2 = Calibration.convertBetween(self.b, 'N', units)
+            m2 = Calibration.convertBetween(self.m, "N", units)
+            b2 = Calibration.convertBetween(self.b, "N", units)
             return Calibration.Fit(m2, b2)
 
-
-    def __init__(self, pts=None, units='N'):
+    def __init__(self, pts=None, units="N"):
         self.pts = []
         self.fit = None
         if pts:
@@ -331,10 +331,10 @@ class Calibration(object):
             # pt wasnt in list. whatever
             pass
 
-    def addPoint(self, pt, units='N'):
+    def addPoint(self, pt, units="N"):
         measured, real = pt
         # maybe the point was given in different units. Convert back to Newtons before adding it.
-        newreal = self.convertBetween(real, units, 'N')
+        newreal = self.convertBetween(real, units, "N")
         pt = measured, newreal
         if pt not in self.pts:
             self.pts.append(pt)
@@ -348,10 +348,10 @@ class Calibration(object):
 
     @classmethod
     def convertBetween(cls, x, fromUnits, toUnits):
-        a = cls.CONVERSIONS[str(toUnits  )]
+        a = cls.CONVERSIONS[str(toUnits)]
         b = cls.CONVERSIONS[str(fromUnits)]
-        c = a/b
-        return x*c
+        c = a / b
+        return x * c
 
     @staticmethod
     def fitLine(pts):
