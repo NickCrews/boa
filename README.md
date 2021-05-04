@@ -12,7 +12,7 @@ For more background info, you can find:
 
 This repository includes the code to run the Arduino, as well as a python program to view, analyze, save, and load data from the sensor, as well as calibrate the sensor.
 
-![screenshot](https://github.com/NickCrews/ForceSensorController/blob/master/results/Screenshot%20from%202018-01-21%2006-59-46.png)
+![screenshot](https://github.com/NickCrews/boa/blob/master/results/Screenshot%20from%202018-01-21%2006-59-46.png)
 
 # Requirements
 
@@ -26,8 +26,8 @@ that the dependencies we install don't mess up any of your globally
 installed libraries. Finally, install the requirements into our venv.
 
 ```sh
-$ git clone https://github.com/NickCrews/ForceSensorController.git
-$ cd ForceSensorController
+$ git clone https://github.com/NickCrews/boa.git
+$ cd boa
 $ python3 -m venv .venv3
 $ source .venv3/bin/activate
 (.venv3)$ pip install -U pip
