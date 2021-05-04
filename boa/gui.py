@@ -1,4 +1,5 @@
 from __future__ import division
+from pathlib import Path
 import time
 import warnings
 
@@ -6,11 +7,12 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
 
-from loadcellcontrol import Calibration
+from boa import Calibration
 
 # dynamically generate the gui skeleton file from the ui file
-with open("basicgui.py", "w") as pyfile:
-    uic.compileUi("LoadCellControl.ui", pyfile)
+this_directory = Path(__file__).parent
+with open(this_directory / "basicgui.py", "w") as pyfile:
+    uic.compileUi(this_directory / "LoadCellControl.ui", pyfile)
 import basicgui
 
 

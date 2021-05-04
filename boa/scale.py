@@ -91,7 +91,7 @@ class BluetoothScaleSearcher(object):
                     lookup_names=True, flush_cache=True
                 )
                 for addr, name in nearby_devices:
-                    # print('found a device', addr, name)
+                    print("found a device", addr, name)
                     if name == cls.SCALE_NAME and addr not in openAddresses:
                         cls.Q.put((addr, name))
             except bt.BluetoothError as e:
@@ -108,8 +108,9 @@ class BluetoothScaleSearcher(object):
 
 
 def updateAvailableScales():
-    SerialScaleSearcher.update()
+    # SerialScaleSearcher.update()
     BluetoothScaleSearcher.update()
+    pass
 
 
 def availableScales():
