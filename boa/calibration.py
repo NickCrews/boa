@@ -1,3 +1,5 @@
+import contextlib
+import sys
 import warnings
 
 import numpy as np
@@ -89,12 +91,20 @@ class Calibration:
         a = np.array(pts)
         x = a[:, 0]
         y = a[:, 1]
-        # catch warnings about a bad fit. We'll just take the bad fit, it's fine
+        # Calling np.polyfit with bad data (eg with infinite slope)
+        # raises all sorts of alarm bells. We manage to deal with:
+        # - np.RankWarning warning
+        # - RuntimeWarning warning
+        # - np.linalg.LinAlgError exception
+        # But I can't figure out how to supress some error:
+        #  ** On entry to DLASCLS parameter number  4 had an illegal value
+        # It's printed to stdout, but monkeypatching sys.stdout doesn't work,
+        # the library that prints it must already have a handle on sys.stdout?
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=Warning)
-            # sometimes if you give it a set of pts with an undefined (infinite slope) it has more serious problems
+            warnings.filterwarnings("ignore", category=np.RankWarning)
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
             try:
                 m, b = np.polyfit(x, y, 1)
-            except ValueError:
+            except np.linalg.LinAlgError:
                 return None
-            return Calibration.Fit(m, b)
+        return Calibration.Fit(m, b)
