@@ -1,7 +1,3 @@
-"""
-Various methods of drawing scrolling plots.
-"""
-from __future__ import division
 import csv
 import warnings
 from math import fabs
@@ -271,13 +267,13 @@ class Boa(QtCore.QObject):
         self.gui.setCalibration(self.calibration)
 
 
-class Calibration(object):
+class Calibration:
     """Represents a set of (raw reading, real weight) pairs the linear relationship in between them."""
 
     # 1N = .1019kg = .2248lbs
     CONVERSIONS = {"N": 1.0, "kg": 0.101971621298, "lbs": 0.2248089431}
 
-    class Fit(object):
+    class Fit:
         def __init__(self, m=1, b=0):
             self.m = m
             self.b = b

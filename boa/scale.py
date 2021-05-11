@@ -9,7 +9,7 @@ import numpy.random as rand
 import serial
 
 
-class SerialScaleSearcher(object):
+class SerialScaleSearcher:
     """Abstract class used to searching for scales connected via USB serial cable.
 
     This search is pretty fast so we don't have to do it in a different process"""
@@ -54,7 +54,7 @@ class SerialScaleSearcher(object):
                 pass
 
 
-class BluetoothScaleSearcher(object):
+class BluetoothScaleSearcher:
     """Abstract class used to search for available bluetooth scales.
 
     The actual search is blocking, and takes a few seconds, so that is done in a different process"""
@@ -119,7 +119,7 @@ def availableScales():
     return result
 
 
-class Scale(object):
+class Scale:
     """Abstract class which is inherited by SerialScale and BluetoothScale"""
 
     def __init__(self):
@@ -197,7 +197,7 @@ class SerialReader(multiprocessing.Process):
     MAX_PACKET_SIZE = 20
 
     def __init__(self, portname, baudrate, readingsQ, commandQ):
-        super(SerialReader, self).__init__()
+        super().__init__()
         self.daemon = True
 
         self.portname = portname
@@ -357,7 +357,7 @@ class BluetoothReader(multiprocessing.Process):
     MAX_PACKET_SIZE = 10
 
     def __init__(self, address, readingQ, quitFlag):
-        super(BluetoothReader, self).__init__()
+        super().__init__()
         self.daemon = True
 
         self._address = address

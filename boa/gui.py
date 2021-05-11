@@ -1,4 +1,3 @@
-from __future__ import division
 from pathlib import Path
 import time
 import warnings
@@ -284,7 +283,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         return ""
 
 
-class Wrapper(object):
+class Wrapper:
     """A class for objects that will wrap around already
     instantiated objects of another class. We are wrapping
     and not subclassing them since they are handed to us
@@ -364,7 +363,7 @@ class Plot(Wrapper, QtCore.QObject):
         """Custom little class to better label the times on the x-axis of the plot"""
 
         def __init__(self):
-            pg.AxisItem.__init__(self, orientation="bottom")
+            super().__init__(orientation="bottom")
             self.setLabel(text="Time", units="")
             self.enableAutoSIPrefix(False)
 
@@ -529,7 +528,7 @@ class Plot(Wrapper, QtCore.QObject):
         return self.viewRange()[0]
 
 
-class CalibrationTab(object):
+class CalibrationTab:
     """Includes a way of displaying a calibration
     as a table and a plot. The add/remove button
     functionality is dealt with elsewhere"""
@@ -542,7 +541,6 @@ class CalibrationTab(object):
         self.table = CalibrationTable(table, units)
         self.plot.sigPointsSelected.connect(self._selectedPointsChanged)
         self.table.sigPointsSelected.connect(self._selectedPointsChanged)
-        return
 
     def setCalibration(self, cal):
         self.calibration = cal
