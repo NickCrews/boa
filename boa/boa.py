@@ -1,6 +1,3 @@
-# LoadCellControl.py
-
-# -*- coding: utf-8 -*-
 """
 Various methods of drawing scrolling plots.
 """
@@ -19,7 +16,7 @@ import gui
 import scale
 
 
-class LoadCellControl(QtCore.QObject):
+class Boa(QtCore.QObject):
     """The main application, consisting of model and GUI
 
     Reads from scale if selected, opens and saves recordings and calibrations"""
@@ -372,4 +369,4 @@ class Calibration(object):
 
 
 if __name__ == "__main__":
-    lcc = LoadCellControl()
+    boa = Boa()
