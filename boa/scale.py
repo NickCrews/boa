@@ -415,11 +415,13 @@ class PhonyScale(Scale):
     SAMPLE_PERIOD = 1.0 / 80
 
     def __init__(self):
-        self.last = time.time()
         self.baudrate = 9600
 
     def __str__(self):
         return "Phony Scale"
+
+    def open(self):
+        self.last = time.time()
 
     def isOpen():
         return True
