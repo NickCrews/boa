@@ -44,14 +44,7 @@ class SerialScaleSearcher:
         for port in ports:
             if port in alreadyOpenPorts:
                 continue
-            try:
-                # try to open it
-                s = serial.Serial(port)
-                s.close()
-                # hurray, we got here, so this is a good port. Add it.
-                cls.availableScales.append(SerialScale(port))
-            except (OSError, serial.SerialException):
-                pass
+            cls.availableScales.append(SerialScale(port))
 
 
 class BluetoothScaleSearcher:
@@ -125,14 +118,21 @@ class Scale:
     def __init__(self):
         raise NotImplementedError("Cannot instantiate the abstract class Scale")
 
+    def open(self):
+        """Must be called before calls to read(). Can be called multiple times."""
+        pass
+
     def isOpen(self):
+        """Retuns whether the Scale is open or not"""
         raise NotImplementedError("isOpen() must be overriden in subclasses")
 
     def close(self):
-        raise NotImplementedError("close() must be overriden in subclasses")
+        """Perform any needed cleanup. Can be called multiple times, at any time."""
+        pass
 
     def read(self):
-        raise NotImplementedError("read() must be overriden in subclasses")
+        """Return an iterable of (time.time(), value) pairs"""
+        return []
 
 
 class SerialScale(Scale):
@@ -145,11 +145,9 @@ class SerialScale(Scale):
         self.port = port
         self._baudrate = baudrate
 
-        # ok, the serial is open, now create the process to constantly read from the port
         self.readingsQ = multiprocessing.Queue(self.MAX_BUFFERED_READINGS)
         self.commandQ = multiprocessing.Queue()
         self.reader = SerialReader(port, baudrate, self.readingsQ, self.commandQ)
-        self.reader.start()
 
     def __repr__(self):
         status = "open" if self.isOpen() else "closed"
@@ -160,6 +158,9 @@ class SerialScale(Scale):
             + " with baudrate "
             + str(self.baudrate)
         )
+
+    def open(self):
+        self.reader.start()
 
     def __str__(self):
         return "Serial Scale at " + self.port
@@ -322,7 +323,6 @@ class BluetoothScale(Scale):
         self.readingsQ = multiprocessing.Queue(self.MAX_BUFFERED_READINGS)
         self.quitFlag = multiprocessing.Event()
         self.reader = BluetoothReader(self.address, self.readingsQ, self.quitFlag)
-        self.reader.start()
 
     def __repr__(self):
         status = "open" if self.isOpen() else "closed"
@@ -336,6 +336,9 @@ class BluetoothScale(Scale):
 
     def __str__(self):
         return "Bluetooth Scale " + self.name
+
+    def open(self):
+        self.reader.start()
 
     def close(self):
         self.quitFlag.set()
@@ -424,9 +427,6 @@ class PhonyScale(Scale):
             val = int(rand.normal() * 100)
             readings.append((timestamp, val))
         return readings
-
-    def close(self):
-        pass
 
     @staticmethod
     def frange(start, stop=None, inc=None):

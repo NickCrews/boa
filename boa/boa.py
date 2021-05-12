@@ -226,8 +226,11 @@ class Boa(QtCore.QObject):
         else:
             for s in self.scales:
                 if name == str(s):
+                    if self.scale:
+                        self.scale.close()
                     self.scale = s
-                    # clear the old stuff
+                    self.scale.open()
+                    # clear thold stuff
                     self.scale.read()
                     return
 
