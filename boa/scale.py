@@ -1,13 +1,12 @@
 import atexit
-import glob
 import logging
 import multiprocessing
-import sys
 import time
 
 import bluetooth as bt
 import numpy.random as rand
 import serial
+from serial.tools.list_ports import comports
 
 
 class Scale:
@@ -60,32 +59,29 @@ class SerialScaleSearcher(ScaleSearcher):
 
     availableScales = []
 
+
+class SerialScaleSearcher(ScaleSearcher):
+    """Searches for scales connected via USB or Bluetooth serial connection.
+
+    This search is pretty fast so we don't have to do it in a different process
+    """
+
+    used_scales = []
+
     @classmethod
     def available_scales(cls):
-        # remove dead scales
-        cls.availableScales = [s for s in cls.availableScales if s.isOpen()]
+        available_ports = set(port.device for port in comports())
+        used_ports = set(scale.port for scale in cls.used_scales)
 
-        # get all possible ports
-        if sys.platform.startswith("win"):
-            ports = ["COM%s" % (i + 1) for i in range(256)]
-        elif sys.platform.startswith("linux") or sys.platform.startswith("cygwin"):
-            # this excludes your current terminal "/dev/tty"
-            ports = glob.glob("/dev/tty[A-Za-z]*")
-        elif sys.platform.startswith("darwin"):
-            ports = glob.glob("/dev/tty.*")
-        else:
-            raise EnvironmentError("Unsupported platform")
+        to_remove = used_ports - available_ports
+        to_add = available_ports - used_ports
 
-        # filter out the bad ones, ignoring ones we already have added and add them
-        alreadyOpenPorts = [
-            s.port for s in cls.availableScales if isinstance(s, SerialScale)
+        cls.used_scales = [
+            scale for scale in cls.used_scales if scale.port not in to_remove
         ]
-        for port in ports:
-            if port in alreadyOpenPorts:
-                continue
-            cls.availableScales.append(SerialScale(port))
+        cls.used_scales += [SerialScale(port) for port in to_add]
 
-        return cls.availableScales
+        return cls.used_scales
 
 
 class BluetoothScaleSearcher(ScaleSearcher):
