@@ -28,12 +28,15 @@ class Boa(QtCore.QObject):
         self.length = 100000
         self.data = deque([], self.length)
         self.numSamplesLastReading = 0
+        self.scaleSearchers = [
+            scale.SerialScaleSearcher,
+            scale.PhonyScaleSearcher,
+        ]
         self.scales = []
         self.scale = None
         self.calibration = Calibration()
         self.sampleRate = self.gui.getSampleRate()
         self.baudrate = self.gui.getBaudrate()
-        self.randomGenerator = scale.PhonyScale()
 
         # set up signals and slots from the GUI
         self.gui.sigScaleChanged.connect(self.useScale)
@@ -221,22 +224,22 @@ class Boa(QtCore.QObject):
     def useScale(self, name):
         if name == "Select...":
             self.scale = None
-        elif name == "Random Generator":
-            self.scale = self.randomGenerator
-        else:
-            for s in self.scales:
-                if name == str(s):
-                    if self.scale:
-                        self.scale.close()
-                    self.scale = s
-                    self.scale.open()
-                    # clear thold stuff
-                    self.scale.read()
-                    return
+            return
+
+        for s in self.scales:
+            if name == str(s):
+                if self.scale:
+                    self.scale.close()
+                self.scale = s
+                self.scale.open()
+                # clear thold stuff
+                self.scale.read()
+                return
 
     def updateAvailableScales(self):
-        scale.updateAvailableScales()
-        available = scale.availableScales()
+        available = []
+        for searcher in self.scaleSearchers:
+            available += searcher.available_scales()
         # print('available scales are', available)
         # clear dead ones
         for s in self.scales:

@@ -9,20 +9,35 @@ import numpy.random as rand
 import serial
 
 
-class SerialScaleSearcher:
+class ScaleSearcher:
+    """Base class for a service that provides Scales as data sources.
+
+    Since Scales are system-wide resources, there should only be one of each
+    Scale, and therefore there should only be a single ScaleSearcher to
+    manage all of them. Therefore make a ScaleSearcher a global singleton by
+    preventing instantiation. Use it as a class, eg ``ScaleSearcher.available_scales()``
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise NotImplementedError(
+            "Cannot create {} instance, just use it as a class".format(cls)
+        )
+
+    @classmethod
+    def available_scales(cls):
+        """Returns an iterable of `Scale` objects."""
+        return []
+
+
+class SerialScaleSearcher(ScaleSearcher):
     """Abstract class used to searching for scales connected via USB serial cable.
 
     This search is pretty fast so we don't have to do it in a different process"""
 
     availableScales = []
 
-    def __init__(self):
-        raise NotImplementedError(
-            "Cannot instantiate the helper class SerialScaleSearcher"
-        )
-
     @classmethod
-    def update(cls):
+    def available_scales(cls):
         # remove dead scales
         cls.availableScales = [s for s in cls.availableScales if s.isOpen()]
 
@@ -46,8 +61,10 @@ class SerialScaleSearcher:
                 continue
             cls.availableScales.append(SerialScale(port))
 
+        return cls.availableScales
 
-class BluetoothScaleSearcher:
+
+class BluetoothScaleSearcher(ScaleSearcher):
     """Abstract class used to search for available bluetooth scales.
 
     The actual search is blocking, and takes a few seconds, so that is done in a different process"""
@@ -58,26 +75,28 @@ class BluetoothScaleSearcher:
 
     SCALE_NAME = "HC-05"
 
-    def __init__(self):
-        raise NotImplementedError(
-            "Cannot instantiate the helper class SerialScaleSearcher"
-        )
-
     @classmethod
-    def update(cls):
+    def available_scales(cls):
         # prune dead scales
         cls.availableScales = [s for s in cls.availableScales if s.isOpen()]
-        # add create new Scales
+        # add new Scales
         while not cls.Q.empty():
             addr, name = cls.Q.get()
-            scale = BluetoothScale(addr, name)
-            cls.availableScales.append(scale)
+            cls.availableScales.append(BluetoothScale(addr, name))
 
-        # maybe skip the rest
+        cls._search(cls.availableScales)
+
+        return cls.availableScales
+
+    @classmethod
+    def _search(cls, already_opened_scales):
+
         if cls._amSearchingFlag.is_set():
             return
+        cls._amSearchingFlag.set()
 
-        def search():
+        def runner():
+            openAddresses = [s.address for s in already_opened_scales]
             try:
                 print("starting scan for bluetooth scales")
                 nearby_devices = bt.discover_devices(
@@ -93,23 +112,8 @@ class BluetoothScaleSearcher:
             finally:
                 cls._amSearchingFlag.clear()
 
-        openAddresses = [s.address for s in cls.availableScales]
-        p = multiprocessing.Process(target=search)
-        p.daemon = True
-        cls._amSearchingFlag.set()
+        p = multiprocessing.Process(target=runner, daemon=True)
         p.start()
-
-
-def updateAvailableScales():
-    # SerialScaleSearcher.update()
-    BluetoothScaleSearcher.update()
-    pass
-
-
-def availableScales():
-    result = SerialScaleSearcher.availableScales
-    result.extend(BluetoothScaleSearcher.availableScales)
-    return result
 
 
 class Scale:
@@ -449,3 +453,12 @@ class PhonyScale(Scale):
             yield result
             result = start + i * inc
             i += 1
+
+
+class PhonyScaleSearcher(ScaleSearcher):
+
+    _singleton_scale = PhonyScale()
+
+    @classmethod
+    def available_scales(cls):
+        return [cls._singleton_scale]

@@ -277,11 +277,6 @@
                  <string>Select...</string>
                 </property>
                </item>
-               <item>
-                <property name="text">
-                 <string>Random Generator</string>
-                </property>
-               </item>
               </widget>
              </item>
              <item row="1" column="0">
