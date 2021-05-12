@@ -48,7 +48,6 @@ class Calibration:
         if self.fit is None:
             return "Unfit Calibration for points " + str(self.pts)
         else:
-            # print((self.fit, self.pts))
             return str(self.fit) + " Calibration for points " + str(self.pts)
 
     def __len__(self):

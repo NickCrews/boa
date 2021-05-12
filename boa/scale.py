@@ -1,5 +1,6 @@
 import atexit
 import glob
+import logging
 import multiprocessing
 import sys
 import time
@@ -98,17 +99,16 @@ class BluetoothScaleSearcher(ScaleSearcher):
         def runner():
             openAddresses = [s.address for s in already_opened_scales]
             try:
-                print("starting scan for bluetooth scales")
+                logging.debug("starting scan for bluetooth scales")
                 nearby_devices = bt.discover_devices(
                     lookup_names=True, flush_cache=True
                 )
                 for addr, name in nearby_devices:
-                    print("found a device", addr, name)
+                    logging.debug("found a device %s - %s", addr, name)
                     if name == cls.SCALE_NAME and addr not in openAddresses:
                         cls.Q.put((addr, name))
             except bt.BluetoothError as e:
-                print(e)
-                pass
+                logging.error(e)
             finally:
                 cls._amSearchingFlag.clear()
 
@@ -218,7 +218,6 @@ class SerialReader(multiprocessing.Process):
         self._waitForLink()
         last = time.time()
         while self._ser.is_open:
-            # print('going through loop')
             # check for updates from outside this thread
             if not self.commandQ.empty():
                 cmd = self.commandQ.get()
@@ -243,7 +242,7 @@ class SerialReader(multiprocessing.Process):
                 self.readingsQ.put(pair)
             else:
                 # we didn't read anything, must have timeout out
-                print("didn't read anything")
+                logging.error("didn't read anything")
                 break
         self.close()
 
@@ -286,7 +285,7 @@ class SerialReader(multiprocessing.Process):
                 "couldn't open the port {port_name}".format(port_name=self._ser.name)
             )
         self._ser.timeout = self.READ_TIMEOUT
-        print("successfully opened serial port", self.portname)
+        logging.info("successfully opened serial port %s", self.portname)
 
     def _waitForLink(self):
         """The Arduino reboots when it initiates a USB serial connection, so wait for it to resume streaming readings"""
@@ -385,10 +384,10 @@ class BluetoothReader(multiprocessing.Process):
                 now = time.time()
                 self.readingQ.put((now, reading))
             except IOError as e:
-                print(e)
+                logging.error(e)
                 break
             except ValueError as e:
-                print(e)
+                logging.error(e)
 
         self._close()
 

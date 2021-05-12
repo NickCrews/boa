@@ -1,6 +1,7 @@
-import csv
-from math import fabs
 from collections import deque
+import csv
+import logging
+from math import fabs
 import signal
 
 import numpy as np
@@ -240,7 +241,6 @@ class Boa(QtCore.QObject):
         available = []
         for searcher in self.scaleSearchers:
             available += searcher.available_scales()
-        # print('available scales are', available)
         # clear dead ones
         for s in self.scales:
             if s not in available:
@@ -274,4 +274,5 @@ class Boa(QtCore.QObject):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     boa = Boa()
