@@ -10,6 +10,29 @@ import numpy.random as rand
 import serial
 
 
+class Scale:
+    """Abstract base class for a scale."""
+
+    def __init__(self):
+        raise NotImplementedError("Cannot instantiate the abstract class Scale")
+
+    def open(self):
+        """Must be called before calls to read(). Can be called multiple times."""
+        pass
+
+    def isOpen(self):
+        """Retuns whether the Scale is open or not."""
+        raise NotImplementedError("isOpen() must be overriden in subclasses")
+
+    def close(self):
+        """Perform any needed cleanup. Can be called multiple times, at any time."""
+        pass
+
+    def read(self):
+        """Return an iterable of (time.time(), value) tuples. Value is an int."""
+        return []
+
+
 class ScaleSearcher:
     """Base class for a service that provides Scales as data sources.
 
@@ -114,29 +137,6 @@ class BluetoothScaleSearcher(ScaleSearcher):
 
         p = multiprocessing.Process(target=runner, daemon=True)
         p.start()
-
-
-class Scale:
-    """Abstract class which is inherited by SerialScale and BluetoothScale"""
-
-    def __init__(self):
-        raise NotImplementedError("Cannot instantiate the abstract class Scale")
-
-    def open(self):
-        """Must be called before calls to read(). Can be called multiple times."""
-        pass
-
-    def isOpen(self):
-        """Retuns whether the Scale is open or not"""
-        raise NotImplementedError("isOpen() must be overriden in subclasses")
-
-    def close(self):
-        """Perform any needed cleanup. Can be called multiple times, at any time."""
-        pass
-
-    def read(self):
-        """Return an iterable of (time.time(), value) pairs"""
-        return []
 
 
 class SerialScale(Scale):
