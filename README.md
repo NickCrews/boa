@@ -17,6 +17,7 @@ This repository includes the code to run the Arduino, as well as a python progra
 # Requirements
 
 - python3
+- MacOS (extensively tested), Linux (At least it worked 2 years ago), or Windows (Theoretically should work, never tested though)
 
 # Use
 
