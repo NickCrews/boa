@@ -427,6 +427,7 @@ class PhonyScale(Scale):
         for timestamp in self.frange(self.last, now, self.SAMPLE_PERIOD):
             val = int(rand.normal() * 100)
             readings.append((timestamp, val))
+        self.last = now
         return readings
 
     @staticmethod
