@@ -19,9 +19,9 @@ class Scale:
         """Must be called before calls to read(). Can be called multiple times."""
         pass
 
-    def isOpen(self):
+    def is_open(self):
         """Retuns whether the Scale is open or not."""
-        raise NotImplementedError("isOpen() must be overriden in subclasses")
+        raise NotImplementedError("is_open() must be overriden in subclasses")
 
     def close(self):
         """Perform any needed cleanup. Can be called multiple times, at any time."""
@@ -98,7 +98,7 @@ class BluetoothScaleSearcher(ScaleSearcher):
     @classmethod
     def available_scales(cls):
         # prune dead scales
-        cls.availableScales = [s for s in cls.availableScales if s.isOpen()]
+        cls.availableScales = [s for s in cls.availableScales if s.is_open()]
         # add new Scales
         while not cls.Q.empty():
             addr, name = cls.Q.get()
@@ -150,7 +150,7 @@ class SerialScale(Scale):
         self.reader = SerialReader(port, baudrate, self.readingsQ, self.commandQ)
 
     def __repr__(self):
-        status = "open" if self.isOpen() else "closed"
+        status = "open" if self.is_open() else "closed"
         return (
             status
             + " Serial Scale at port "
@@ -165,7 +165,7 @@ class SerialScale(Scale):
     def __str__(self):
         return "Serial Scale at " + self.port
 
-    def isOpen(self):
+    def is_open(self):
         return self.reader.is_alive()
 
     def close(self):
@@ -210,8 +210,8 @@ class SerialReader(multiprocessing.Process):
         atexit.register(self.close)
 
     def run(self):
-        self._openPort()
-        self._waitForLink()
+        self._open_port()
+        self._wait_for_link()
         last = time.time()
         while self._ser.is_open:
             # check for updates from outside this thread
@@ -268,7 +268,7 @@ class SerialReader(multiprocessing.Process):
                 # got end of line or there's a problem with baudrate so we never get eol
                 return None
 
-    def _openPort(self):
+    def _open_port(self):
         # try to open the serial port
         try:
             self._ser = serial.Serial(self.portname, baudrate=self.baudrate)
@@ -283,7 +283,7 @@ class SerialReader(multiprocessing.Process):
         self._ser.timeout = self.READ_TIMEOUT
         logging.info("successfully opened serial port %s", self.portname)
 
-    def _waitForLink(self):
+    def _wait_for_link(self):
         """The Arduino reboots when it initiates a USB serial connection, so wait for it to resume streaming readings"""
         start_time = time.time()
         while True:
@@ -324,7 +324,7 @@ class BluetoothScale(Scale):
         self.reader = BluetoothReader(self.address, self.readingsQ, self.quitFlag)
 
     def __repr__(self):
-        status = "open" if self.isOpen() else "closed"
+        status = "open" if self.is_open() else "closed"
         return (
             status
             + " Bluetooth Scale at address "
@@ -342,7 +342,7 @@ class BluetoothScale(Scale):
     def close(self):
         self.quitFlag.set()
 
-    def isOpen(self):
+    def is_open(self):
         return self.reader.is_alive()
 
     def read(self):
@@ -420,7 +420,7 @@ class PhonyScale(Scale):
         self._is_open = True
         self.last = time.time()
 
-    def isOpen():
+    def is_open():
         return self._is_open
 
     def read(self):
@@ -446,13 +446,13 @@ class PhonyScale(Scale):
         i = 1
         result = start
 
-        def shouldContinue(current, cutoff):
+        def should_continue(current, cutoff):
             if inc > 0:
                 return current < cutoff
             else:
                 return current > cutoff
 
-        while shouldContinue(result, stop):
+        while should_continue(result, stop):
             yield result
             result = start + i * inc
             i += 1
