@@ -411,15 +411,17 @@ class PhonyScale(Scale):
 
     def __init__(self):
         self.baudrate = 9600
+        self._is_open = False
 
     def __str__(self):
         return "Phony Scale"
 
     def open(self):
+        self._is_open = True
         self.last = time.time()
 
     def isOpen():
-        return True
+        return self._is_open
 
     def read(self):
         now = time.time()
@@ -429,6 +431,9 @@ class PhonyScale(Scale):
             readings.append((timestamp, val))
         self.last = now
         return readings
+
+    def close(self):
+        self._is_open = False
 
     @staticmethod
     def frange(start, stop=None, inc=None):
