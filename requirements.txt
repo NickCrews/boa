@@ -16,14 +16,6 @@ pep517==0.10.0
     # via pip-tools
 pip-tools==6.1.0
     # via -r requirements.in
-pybluez==0.23
-    # via -r requirements.in
-pyobjc-core==7.2
-    # via
-    #   pybluez
-    #   pyobjc-framework-cocoa
-pyobjc-framework-cocoa==7.2
-    # via pybluez
 pyqt5-qt5==5.15.2
     # via pyqt5
 pyqt5-sip==12.8.1

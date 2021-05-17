@@ -4,7 +4,6 @@
 # See that file for more info.
 numpy
 pip-tools
-PyBluez
 PyQt5
 pyqtgraph
 pyserial
