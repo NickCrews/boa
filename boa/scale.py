@@ -420,7 +420,7 @@ class MockScale(Scale):
         self._is_open = True
         self.last = time.time()
 
-    def is_open():
+    def is_open(self):
         return self._is_open
 
     def read(self):
