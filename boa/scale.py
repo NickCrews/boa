@@ -404,7 +404,7 @@ class BluetoothReader(multiprocessing.Process):
             self._sock.close()
 
 
-class PhonyScale(Scale):
+class MockScale(Scale):
     """Useful for generating random noise for testing GUI if an actual scale isn't present"""
 
     SAMPLE_PERIOD = 1.0 / 80
@@ -414,7 +414,7 @@ class PhonyScale(Scale):
         self._is_open = False
 
     def __str__(self):
-        return "Phony Scale"
+        return "Mock Scale"
 
     def open(self):
         self._is_open = True
@@ -458,9 +458,9 @@ class PhonyScale(Scale):
             i += 1
 
 
-class PhonyScaleSearcher(ScaleSearcher):
+class MockScaleSearcher(ScaleSearcher):
 
-    _singleton_scale = PhonyScale()
+    _singleton_scale = MockScale()
 
     @classmethod
     def available_scales(cls):

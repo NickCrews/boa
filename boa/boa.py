@@ -31,7 +31,7 @@ class Boa(QtCore.QObject):
         self.numSamplesLastReading = 0
         self.scaleSearchers = [
             scale.SerialScaleSearcher,
-            scale.PhonyScaleSearcher,
+            scale.MockScaleSearcher,
         ]
         self.scales = []
         self.scale = None
