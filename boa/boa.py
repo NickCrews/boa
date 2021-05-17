@@ -221,21 +221,29 @@ class Boa(QtCore.QObject):
 
     @QtCore.pyqtSlot(str)
     def useScale(self, name):
-        if name == "Select...":
-            self.scale = None
+        # Determine what we need to do
+        to_open = None
+        for s in self.scales:
+            if str(s) == name:
+                to_open = s
+                break
+        if to_open is self.scale:
             return
 
-        for s in self.scales:
-            if name == str(s):
-                if self.scale:
-                    self.scale.close()
-                self.scale = s
-                if hasattr(self.scale, "baudrate"):
-                    self.scale.baudrate = self.baudrate
-                self.scale.open()
-                # clear the hold stuff
-                self.scale.read()
-                return
+        # Clean up the old scale
+        if self.scale:
+            self.scale.close()
+
+        # Set up the new scale
+        self.scale = to_open
+        if self.scale is None:
+            return
+        if hasattr(self.scale, "baudrate"):
+            self.scale.baudrate = self.baudrate
+        self.scale.open()
+        # clear the old stuff
+        self.scale.read()
+        return
 
     def updateAvailableScales(self):
         available = []
