@@ -212,8 +212,6 @@ class Boa(QtCore.QObject):
                 csv_out.writerow(row)
 
     def addScale(self, s):
-        if isinstance(s, serial.SerialScale):
-            s.baudrate = self.baudrate
         self.scales.append(s)
         self.gui.setScaleList([str(s) for s in self.scales])
 
@@ -232,8 +230,10 @@ class Boa(QtCore.QObject):
                 if self.scale:
                     self.scale.close()
                 self.scale = s
+                if hasattr(self.scale, "baudrate"):
+                    self.scale.baudrate = self.baudrate
                 self.scale.open()
-                # clear thold stuff
+                # clear the hold stuff
                 self.scale.read()
                 return
 
@@ -257,9 +257,8 @@ class Boa(QtCore.QObject):
     @QtCore.pyqtSlot(int)
     def setBaudrate(self, br):
         self.baudrate = br
-        for s in self.scales:
-            if isinstance(s, scale.SerialScale):
-                s.baudrate = br
+        if hasattr(self.scale, "baudrate"):
+            self.scale.baudrate = br
 
     @QtCore.pyqtSlot(float, float, str)
     def addSample(self, measured, real, units):
