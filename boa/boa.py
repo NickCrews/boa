@@ -9,7 +9,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 
 import gui
-import scale
+from scale import serial, mock
 from calibration import Calibration
 
 
@@ -30,8 +30,8 @@ class Boa(QtCore.QObject):
         self.data = deque([], self.length)
         self.numSamplesLastReading = 0
         self.scaleSearchers = [
-            scale.SerialScaleSearcher,
-            scale.MockScaleSearcher,
+            serial.SerialScaleSearcher,
+            mock.MockScaleSearcher,
         ]
         self.scales = []
         self.scale = None
@@ -212,7 +212,7 @@ class Boa(QtCore.QObject):
                 csv_out.writerow(row)
 
     def addScale(self, s):
-        if isinstance(s, scale.SerialScale):
+        if isinstance(s, serial.SerialScale):
             s.baudrate = self.baudrate
         self.scales.append(s)
         self.gui.setScaleList([str(s) for s in self.scales])
