@@ -37,7 +37,7 @@ class App(QtCore.QObject):
         self.baudrate = self.gui.getBaudrate()
 
         # set up signals and slots from the GUI
-        self.gui.sigScaleChanged.connect(self.onScaleSelected)
+        self.gui.sigScaleChanged.connect(self.useScale)
         self.gui.sigSampleRateChanged.connect(self.setSampleRate)
         self.gui.sigBaudrateChanged.connect(self.setBaudrate)
 
@@ -209,17 +209,11 @@ class App(QtCore.QObject):
             for row in self.calibration.pts:
                 csv_out.writerow(row)
 
-    @QtCore.pyqtSlot(str)
-    def onScaleSelected(self, name):
-        new_scale = None
-        for s in self.scales:
-            if str(s) == name:
-                new_scale = s
-                break
-        if new_scale is not self.scale:
-            self.useScale(new_scale)
-
+    @QtCore.pyqtSlot(object)
     def useScale(self, scale):
+        if scale is self.scale:
+            return
+
         # Clean up the old scale
         if self.scale:
             self.scale.close()
@@ -237,11 +231,12 @@ class App(QtCore.QObject):
         return
 
     def updateAvailableScales(self):
-        available = []
+        # Use a temp variable to avoid spamming changes to self.scales
+        scales = []
         for searcher in self.scaleSearchers:
-            available += searcher.available_scales()
-        self.scales = available
-        self.gui.setScaleList([str(s) for s in self.scales])
+            scales += searcher.available_scales()
+        self.scales = scales
+        self.gui.setScaleList(self.scales)
 
     @QtCore.pyqtSlot(float)
     def setSampleRate(self, sr):

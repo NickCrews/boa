@@ -20,7 +20,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
     and for performing actions such as changing scale settings,
     loading/saving calibrations, and logging data"""
 
-    sigScaleChanged = QtCore.pyqtSignal(str)
+    sigScaleChanged = QtCore.pyqtSignal(object)
     sigBaudrateChanged = QtCore.pyqtSignal(int)
     sigSampleRateChanged = QtCore.pyqtSignal(float)
     sigSaveCal = QtCore.pyqtSignal(str)
@@ -42,6 +42,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         # instance variables
         self.calibration = None
         self.units = "N"
+        self.scales = []
         # used for displaying the average readings for the last
         # historyTime in seconds
         self.historyTime = 1
@@ -65,7 +66,8 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         self.removeSampleButton.clicked.connect(self._removeSamples)
 
         def f():
-            self.sigScaleChanged.emit(self.scalesComboBox.currentText())
+            i = self.scalesComboBox.currentIndex()
+            self.sigScaleChanged.emit(self.scales[i])
 
         self.scalesComboBox.currentIndexChanged.connect(f)
 
@@ -120,11 +122,13 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         scales:list of str-The name of each scale
         This is a little tricky because we can't clear and then repopulate the combobox,
         or the current selection would be lost"""
+        self.scales = [None] + scales
+        scale_names = [str(s) for s in scales]
         scb = self.scalesComboBox
         # remove any scales from combobox that aren't in scale list
         # The item in combobox are "Select...", so ignore it.
         for i in range(1, len(scb)):
-            if scb.itemText(i) not in scales:
+            if scb.itemText(i) not in scale_names:
                 # if current scale is removed then default back to selecting index 0
                 if i == scb.currentIndex():
                     scb.setCurrentIndex(0)
@@ -132,7 +136,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
 
         # append any NEW scales
         alreadyThere = [scb.itemText(i) for i in range(len(scb))]
-        for s in scales:
+        for s in scale_names:
             if s not in alreadyThere:
                 scb.addItem(s)
 
