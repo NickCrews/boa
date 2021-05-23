@@ -6,13 +6,13 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
 
-from boa import Calibration
+from .calibration import Calibration
 
 # dynamically generate the gui skeleton file from the ui file
 this_directory = Path(__file__).parent
 with open(this_directory / "basicgui.py", "w") as pyfile:
     uic.compileUi(this_directory / "LoadCellControl.ui", pyfile)
-import basicgui
+from . import basicgui
 
 
 class GUI(basicgui.Ui_GUI, QtCore.QObject):

@@ -8,12 +8,12 @@ import numpy as np
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 
-import gui
-from scale import serial, mock
-from calibration import Calibration
+from . import gui
+from .scale import serial, mock
+from .calibration import Calibration
 
 
-class Boa(QtCore.QObject):
+class App(QtCore.QObject):
     """The main application, consisting of model and GUI
 
     Reads from scale if selected, opens and saves recordings and calibrations"""
@@ -279,10 +279,3 @@ class Boa(QtCore.QObject):
         for p in pts:
             self.calibration.removePoint(p)
         self.gui.setCalibration(self.calibration)
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    boa = Boa()
-    boa.openCalibration("calibrations/finalCalibration.csv")
-    boa.start()

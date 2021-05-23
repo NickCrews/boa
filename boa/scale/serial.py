@@ -6,7 +6,7 @@ import serial
 import serial.threaded
 from serial.tools.list_ports import comports
 
-import scale
+from boa import scale
 
 
 class SerialScale(scale.Scale):

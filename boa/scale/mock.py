@@ -2,7 +2,7 @@ import time
 
 import numpy.random
 
-import scale
+from boa import scale
 
 
 class MockScale(scale.Scale):
