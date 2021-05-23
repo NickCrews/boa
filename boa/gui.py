@@ -122,8 +122,8 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         or the current selection would be lost"""
         scb = self.scalesComboBox
         # remove any scales from combobox that aren't in scale list
-        # The first two items in combobox are "Select and scale..." and "Random Generator." Ignore them.
-        for i in range(2, len(scb)):
+        # The item in combobox are "Select...", so ignore it.
+        for i in range(1, len(scb)):
             if scb.itemText(i) not in scales:
                 # if current scale is removed then default back to selecting index 0
                 if i == scb.currentIndex():
