@@ -401,15 +401,12 @@ class Plot(Wrapper, QtCore.QObject):
         self.disableAutoRange()
         self.hideButtons()
         self.setLabel("left", "raw")
-        self.setLabel("right", units=units)
-        self.hideAxis("right")
 
         self.setDownsampling(mode="peak")
         self.rightAxisViewBox = pg.ViewBox()
         self.plotItem.scene().addItem(self.rightAxisViewBox)
         self.getAxis("right").linkToView(self.rightAxisViewBox)
-        self.rightAxisViewBox.sigYRangeChanged.connect(self._rightAxisChanged)
-        self.sigYRangeChanged.connect(self._leftAxisChanged)
+        self.sigYRangeChanged.connect(self.redraw)
 
         self.line = pg.InfiniteLine(angle=0, movable=True)
         self.addItem(self.line, ignoreBounds=True)
@@ -421,10 +418,11 @@ class Plot(Wrapper, QtCore.QObject):
         self.addTimeAxis(self.timeAxis)
         self.showGrid(y=True, x=True)
 
+        self.redraw()
+
     def addTimeAxis(self, axis):
         pi = self.getPlotItem()
-        old = self.getAxis("bottom")
-        pi.layout.removeItem(old)
+        pi.layout.removeItem(self.getAxis("bottom"))
 
         pos = (3, 1)
         axis.linkToView(self.getViewBox())
@@ -476,45 +474,24 @@ class Plot(Wrapper, QtCore.QObject):
 
     def setUnits(self, units):
         self.units = units
-        self.setLabel("right", units=units)
-        if self.fit is not None:
-            self.showAxis("right")
-            self._leftAxisChanged()
-            self.getAxis("left").setGrid(False)
-        else:
-            self.hideAxis("right")
-            self.getAxis("left").setGrid(127)
+        self.redraw()
 
     def setFit(self, fit):
         """Set the conversion function between raw units and real units"""
         self.fit = fit
-        if self.fit is not None:
-            self.showAxis("right")
-            self._leftAxisChanged()
-            self.getAxis("left").setGrid(False)
-        else:
-            self.hideAxis("right")
-            self.getAxis("left").setGrid(127)
+        self.redraw()
 
     def setAutoscroll(self, val):
         self.doAutoscroll = val
 
-    def _rightAxisChanged(self):
-        # if self.fit is not None:
-        #     lo, hi = self.rightAxisViewBox.viewRange()[1]
-        #     lo = self.fit.real2measured(lo, fromUnits=self.units)
-        #     hi = self.fit.real2measured(hi, fromUnits=self.units)
-        #     self._wrapped.blockSignals(True)
-        #     if self.fit.m < 0:
-        #         self.rightAxisViewBox.invertY(True)
-        #     else:
-        #         self.rightAxisViewBox.invertY(False)
-        #     self.setYRange(lo, hi, padding=0)
-        #     self._wrapped.blockSignals(False)
-        pass
-
-    def _leftAxisChanged(self):
-        if self.fit is not None:
+    def redraw(self):
+        if self.fit is None:
+            self.hideAxis("right")
+            self.getAxis("left").setGrid(127)
+        else:
+            self.showAxis("right")
+            self.setLabel("right", units=self.units)
+            self.getAxis("left").setGrid(False)
             lo, hi = self.viewRange()[1]
             lo = self.fit.measured2real(lo, self.units)
             hi = self.fit.measured2real(hi, self.units)
