@@ -67,7 +67,8 @@ class Boa(QtCore.QObject):
         # Make it so ctrl-C signal from terminal actually quits the app
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-        # start up the app!
+    def start(self):
+        """Start the app. Call after all initialization. Blocks until completion."""
         self.app.exec_()
 
     def readFromScale(self):
@@ -283,3 +284,5 @@ class Boa(QtCore.QObject):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     boa = Boa()
+    boa.openCalibration("calibrations/finalCalibration.csv")
+    boa.start()
