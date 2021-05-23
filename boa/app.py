@@ -9,7 +9,6 @@ from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 
 from . import gui
-from .scale import serial, mock
 from .calibration import Calibration
 
 
@@ -29,10 +28,7 @@ class App(QtCore.QObject):
         self.length = 100000
         self.data = deque([], self.length)
         self.numSamplesLastReading = 0
-        self.scaleSearchers = [
-            serial.SerialScaleSearcher,
-            mock.MockScaleSearcher,
-        ]
+        self.scaleSearchers = []
         self.scales = []
         self.scale = None
         self.calibration = Calibration()
