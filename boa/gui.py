@@ -46,6 +46,7 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         # historyTime in seconds
         self.historyTime = 1
         self.lastFewReadings = []
+        self.avgVal = None
 
         # set up parts of display
         # The scrolling plot, the calibrationtab consisting of both the table and graph of
@@ -107,7 +108,11 @@ class GUI(basicgui.Ui_GUI, QtCore.QObject):
         if self.calibration and self.calibration.hasFit():
             inNewtons = self.calibration.fit.measured2real(avgVal)
             avgVal = Calibration.convertBetween(inNewtons, "N", self.units)
-        self.currentReadingLCD.display(avgVal)
+        self.setAvgVal(avgVal)
+
+    def setAvgVal(self, avgVal):
+        self.avgVal = avgVal
+        self.currentReadingLCD.display(self.avgVal)
 
     def setScaleList(self, scales):
         """Update the list of available scales

@@ -31,12 +31,13 @@ class App(QtCore.QObject):
         self.scaleSearchers = []
         self.scales = []
         self.scale = None
+        self.useScale(self.scale)
         self.calibration = Calibration()
         self.sampleRate = self.gui.getSampleRate()
         self.baudrate = self.gui.getBaudrate()
 
         # set up signals and slots from the GUI
-        self.gui.sigScaleChanged.connect(self.useScale)
+        self.gui.sigScaleChanged.connect(self.onScaleSelected)
         self.gui.sigSampleRateChanged.connect(self.setSampleRate)
         self.gui.sigBaudrateChanged.connect(self.setBaudrate)
 
@@ -209,23 +210,24 @@ class App(QtCore.QObject):
                 csv_out.writerow(row)
 
     @QtCore.pyqtSlot(str)
-    def useScale(self, name):
-        # Determine what we need to do
-        to_open = None
+    def onScaleSelected(self, name):
+        new_scale = None
         for s in self.scales:
             if str(s) == name:
-                to_open = s
+                new_scale = s
                 break
-        if to_open is self.scale:
-            return
+        if new_scale is not self.scale:
+            self.useScale(new_scale)
 
+    def useScale(self, scale):
         # Clean up the old scale
         if self.scale:
             self.scale.close()
 
         # Set up the new scale
-        self.scale = to_open
+        self.scale = scale
         if self.scale is None:
+            self.gui.setAvgVal("None")
             return
         if hasattr(self.scale, "baudrate"):
             self.scale.baudrate = self.baudrate
