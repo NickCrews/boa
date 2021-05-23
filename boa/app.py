@@ -208,14 +208,6 @@ class App(QtCore.QObject):
             for row in self.calibration.pts:
                 csv_out.writerow(row)
 
-    def addScale(self, s):
-        self.scales.append(s)
-        self.gui.setScaleList([str(s) for s in self.scales])
-
-    def removeScale(self, s):
-        self.scales.remove(s)
-        self.gui.setScaleList([str(s) for s in self.scales])
-
     @QtCore.pyqtSlot(str)
     def useScale(self, name):
         # Determine what we need to do
@@ -246,14 +238,8 @@ class App(QtCore.QObject):
         available = []
         for searcher in self.scaleSearchers:
             available += searcher.available_scales()
-        # clear dead ones
-        for s in self.scales:
-            if s not in available:
-                self.removeScale(s)
-        # add new ones
-        for s in available:
-            if s not in self.scales:
-                self.addScale(s)
+        self.scales = available
+        self.gui.setScaleList([str(s) for s in self.scales])
 
     @QtCore.pyqtSlot(float)
     def setSampleRate(self, sr):
