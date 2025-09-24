@@ -28,5 +28,5 @@ toml==0.10.2
     # via pep517
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==23.3
+pip==25.2
     # via pip-tools
